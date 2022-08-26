@@ -209,7 +209,7 @@ public class MainFxController implements Initializable {
                 int id = Integer.parseInt(segment.getId());
                 if (id > 0 && segment.text.getText().trim().isEmpty()) {
                     boolean lockedSegment = false;
-                    
+
                     GenericSkeleton genericSkeleton = (GenericSkeleton) tu.getSkeleton();
                     for (GenericSkeletonPart gsp : genericSkeleton.getParts()) {
                         StringBuilder data = gsp.getData();

@@ -208,33 +208,48 @@ public class MainFxController implements Initializable {
             for (Segment segment : segments) {
                 int id = Integer.parseInt(segment.getId());
                 if (id > 0 && segment.text.getText().trim().isEmpty()) {
-                    boolean lockedSegment = false;
-
-                    GenericSkeleton genericSkeleton = (GenericSkeleton) tu.getSkeleton();
-                    for (GenericSkeletonPart gsp : genericSkeleton.getParts()) {
-                        StringBuilder data = gsp.getData();
-
-                        //잠금 세그먼트 식별
-                        if (data.indexOf("locked=\"true\"") > 0) {
-                            lockedSegment = true;
-                            continue;
-                        }
-
-                        //세그먼트 상태변경 -> 초안, NMT
-                        if (data.indexOf("id=\"" + id + "\"") > 0 &&
-                                data.indexOf("conf=") == -1 && data.indexOf("origin=") == -1) {
-                            int start = data.indexOf("id=\"" + id + "\"") + ("id=\"" + id + "\"").length();
-                            int end = start;
-                            data.replace(start, end, " conf=\"Draft\" origin=\"nmt\"");
-                        }
-                    }
                     // 잠긴 세그먼트 건너뜀
-                    if (!lockedSegment) {
-                        segment.text.setCodedText(targetSegmentMap.get(segment.getId()));
+                    if (!isLockedSegment(tu)) {
+                        segment.text.setCodedText(targetSegmentMap.get(segment.getId())); //타겟 텍스트 삽입
+                        changeSegmentStatus(tu, id); //세그먼트 상태변경
                     }
                 }
             }
         }
+    }
+
+    /*
+    * 세그먼트 상태를 변경합니다. | 미번역 -> 초안, NMT
+    */
+    private void changeSegmentStatus(ITextUnit tu, int segmentId) {
+        GenericSkeleton genericSkeleton = (GenericSkeleton) tu.getSkeleton();
+        for (GenericSkeletonPart gsp : genericSkeleton.getParts()) {
+            StringBuilder data = gsp.getData();
+
+            //세그먼트 상태변경 -> 초안, NMT
+            if (data.indexOf("id=\"" + segmentId + "\"") > 0 &&
+                    data.indexOf("conf=") == -1 && data.indexOf("origin=") == -1) {
+                int start = data.indexOf("id=\"" + segmentId + "\"") + ("id=\"" + segmentId + "\"").length();
+                int end = start;
+                data.replace(start, end, " conf=\"Draft\" origin=\"nmt\"");
+            }
+        }
+    }
+
+    /*
+    * 잠긴 세그먼트인지 판별합니다.
+    */
+    private boolean isLockedSegment(ITextUnit tu) {
+        GenericSkeleton genericSkeleton = (GenericSkeleton) tu.getSkeleton();
+        for (GenericSkeletonPart gsp : genericSkeleton.getParts()) {
+            StringBuilder data = gsp.getData();
+
+            //잠금 세그먼트 식별
+            if (data.indexOf("locked=\"true\"") > 0) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /*

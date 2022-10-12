@@ -87,8 +87,8 @@ public class MainFxController implements Initializable {
     }
 
     /*
-    * Google Translation V3의 설정값
-    */
+     * Google Translation V3의 설정값
+     */
     private void setAdvancedTranslationSettings() {
         String json = preference.get(JSON, "");
         String project = preference.get(PROJECT, "34036614342");
@@ -100,11 +100,11 @@ public class MainFxController implements Initializable {
     }
 
     /*
-    * 학습형 구글번역(NMT)를 적용합니다.
-    */
+     * 학습형 구글번역(NMT)를 적용합니다.
+     */
     @FXML
     void clickBtnApplyNMT(ActionEvent event) {
-        //리스트에 파일목록이 없으면 종료
+        // 리스트에 파일목록이 없으면 종료
         if (lstFiles.getItems().size() < 1) {
             String title = "Error";
             String header = "Error";
@@ -115,7 +115,7 @@ public class MainFxController implements Initializable {
 
         String msg;
         try {
-            //목록에 있는 각 파일들에 대하여 NMT 적용
+            // 목록에 있는 각 파일들에 대하여 NMT 적용
             List<String> sourcePaths = lstFiles.getItems();
             for (String path : sourcePaths) {
                 File sourceFile = new File(path);
@@ -156,8 +156,8 @@ public class MainFxController implements Initializable {
     }
 
     /*
-    * Event 정보에서 Segment 정보를 가져옵니다. Segment 정보는 TestUnit 내부에 있습니다.
-    */
+     * Event 정보에서 Segment 정보를 가져옵니다. Segment 정보는 TestUnit 내부에 있습니다.
+     */
     private List<ITextUnit> getTextUnits(List<Event> allFilterEvents) {
         List<ITextUnit> textUnits = new ArrayList<>();
         for (Event e : allFilterEvents) {
@@ -169,8 +169,8 @@ public class MainFxController implements Initializable {
     }
 
     /*
-    * Filter에서 모든 Event 목록을 가져옵니다. 각 Event를 통해 Segment 정보를 추출할 수 있습니다.
-    */
+     * Filter에서 모든 Event 목록을 가져옵니다. 각 Event를 통해 Segment 정보를 추출할 수 있습니다.
+     */
     private List<Event> getAllEventsFromFilter(File sourceFile) {
         List<Event> events = new ArrayList<>();
         RawDocument document = new RawDocument(sourceFile.toURI(), "UTF-8-BOM", KOREAN, ENGLISH);
@@ -182,8 +182,8 @@ public class MainFxController implements Initializable {
     }
 
     /*
-    * Filter에 적용된 변경사항을 원본 문서에 덮어 씁니다.
-    */
+     * Filter에 적용된 변경사항을 원본 문서에 덮어 씁니다.
+     */
     private void extractTargetFile(List<Event> allFilterEvents, File sourceFile) {
         try {
             IFilterWriter filterWriter = filter.createFilterWriter();
@@ -195,13 +195,14 @@ public class MainFxController implements Initializable {
             filter.close();
             throw new OkapiMergeException("Error merging from original file", ex);
         } finally {
-            if (filter != null) filter.close();
+            if (filter != null)
+                filter.close();
         }
     }
 
     /*
-    * Google Translation V3 API에서 받아온 문장 리스트를 타겟 세그먼트에 적용 시킵니다.
-    */
+     * Google Translation V3 API에서 받아온 문장 리스트를 타겟 세그먼트에 적용 시킵니다.
+     */
     private void applyTranslatedTextToTextUnit(List<ITextUnit> textUnits, Map<String, String> targetSegmentMap) {
         for (ITextUnit tu : textUnits) {
             List<Segment> segments = tu.getTargetSegments(ENGLISH).asList();
@@ -210,8 +211,8 @@ public class MainFxController implements Initializable {
                 if (id > 0 && segment.text.getText().trim().isEmpty()) {
                     // 잠긴 세그먼트 건너뜀
                     if (!isLockedSegment(tu)) {
-                        segment.text.setCodedText(targetSegmentMap.get(segment.getId())); //타겟 텍스트 삽입
-                        changeSegmentStatus(tu, id); //세그먼트 상태변경
+                        segment.text.setCodedText(targetSegmentMap.get(segment.getId())); // 타겟 텍스트 삽입
+                        changeSegmentStatus(tu, id); // 세그먼트 상태변경
                     }
                 }
             }
@@ -219,14 +220,14 @@ public class MainFxController implements Initializable {
     }
 
     /*
-    * 세그먼트 상태를 변경합니다. | 미번역 -> 초안, NMT
-    */
+     * 세그먼트 상태를 변경합니다. | 미번역 -> 초안, NMT
+     */
     private void changeSegmentStatus(ITextUnit tu, int segmentId) {
         GenericSkeleton genericSkeleton = (GenericSkeleton) tu.getSkeleton();
         for (GenericSkeletonPart gsp : genericSkeleton.getParts()) {
             StringBuilder data = gsp.getData();
 
-            //세그먼트 상태변경 -> 초안, NMT
+            // 세그먼트 상태변경 -> 초안, NMT
             if (data.indexOf("id=\"" + segmentId + "\"") > 0 &&
                     data.indexOf("conf=") == -1 && data.indexOf("origin=") == -1) {
                 int start = data.indexOf("id=\"" + segmentId + "\"") + ("id=\"" + segmentId + "\"").length();
@@ -237,14 +238,14 @@ public class MainFxController implements Initializable {
     }
 
     /*
-    * 잠긴 세그먼트인지 판별합니다.
-    */
+     * 잠긴 세그먼트인지 판별합니다.
+     */
     private boolean isLockedSegment(ITextUnit tu) {
         GenericSkeleton genericSkeleton = (GenericSkeleton) tu.getSkeleton();
         for (GenericSkeletonPart gsp : genericSkeleton.getParts()) {
             StringBuilder data = gsp.getData();
 
-            //잠금 세그먼트 식별
+            // 잠금 세그먼트 식별
             if (data.indexOf("locked=\"true\"") > 0) {
                 return true;
             }
@@ -253,8 +254,8 @@ public class MainFxController implements Initializable {
     }
 
     /*
-    * 타겟 세그먼트의 문장들을 NMT 결과로 교체합니다.
-    */
+     * 타겟 세그먼트의 문장들을 NMT 결과로 교체합니다.
+     */
     private void replaceToTranslatedText(Map<String, String> targetSegmentMap, Map<String, String> batchSegmentMap) {
         for (int i = 1; i <= targetSegmentMap.size(); i++) {
             String key = String.valueOf(i);
@@ -263,8 +264,8 @@ public class MainFxController implements Initializable {
     }
 
     /*
-    * TextUnit 객체에서 각 Segment 목록을 추출합니다.
-    */
+     * TextUnit 객체에서 각 Segment 목록을 추출합니다.
+     */
     private Map<String, String> getSegmentMap(List<ITextUnit> textUnits, FLAG flag) {
         Map<String, String> segmentMap = new HashMap<>();
         List<Segment> segments = null;
@@ -276,7 +277,7 @@ public class MainFxController implements Initializable {
             }
             for (int i = 0; i < segments.size(); i++) {
                 Segment segment = segments.get(i);
-                if (Integer.parseInt(segment.getId()) > 0) {
+                if (Integer.parseInt(segment.getId()) > 0 && !segment.text.getText().isEmpty()) {
                     segmentMap.put(segment.getId(), segment.text.getText());
                 }
             }
@@ -285,8 +286,8 @@ public class MainFxController implements Initializable {
     }
 
     /*
-    * 파일추가 버튼 Event
-    */
+     * 파일추가 버튼 Event
+     */
     @FXML
     void clickBtnAdd(ActionEvent event) {
         String defaultPath = preference.get(SOURCE_PATH, DESKTOP_PATH);
@@ -295,8 +296,8 @@ public class MainFxController implements Initializable {
     }
 
     /*
-    * 파일삭제 버튼 Event
-    */
+     * 파일삭제 버튼 Event
+     */
     @FXML
     void clickBtnDelete(ActionEvent event) {
         MultipleSelectionModel<String> selectionModel = lstFiles.getSelectionModel();
@@ -307,8 +308,8 @@ public class MainFxController implements Initializable {
     }
 
     /*
-    * File ListView에 선택한 파일목록을 추가합니다.
-    */
+     * File ListView에 선택한 파일목록을 추가합니다.
+     */
     private void addListItems(ListView<String> lstFiles, List<File> files) {
         for (File file : files) {
             String absolutePath = file.getAbsolutePath();
@@ -319,8 +320,8 @@ public class MainFxController implements Initializable {
     }
 
     /*
-    * JSON 키를 불러옵니다.
-    */
+     * JSON 키를 불러옵니다.
+     */
     @FXML
     void clickBtnSearchJson(ActionEvent event) {
         String defaultPath = preference.get(JSON, DESKTOP_PATH);
@@ -331,15 +332,15 @@ public class MainFxController implements Initializable {
     }
 
     /*
-    * File Open Multiple Dialog를 통해 다중 파일목록을 가져옵니다.
-    */
+     * File Open Multiple Dialog를 통해 다중 파일목록을 가져옵니다.
+     */
     private List<File> getFileLists(String defaultPath) {
         return showFileChooser(defaultPath);
     }
 
     /*
-    * 기본경로 설정 후 File Open Multiple Dialog를 띄워줍니다.
-    */
+     * 기본경로 설정 후 File Open Multiple Dialog를 띄워줍니다.
+     */
     private List<File> showFileChooser(String defaultPath) {
         String title = "Select the file...";
         File defaultDir = new File(defaultPath);
@@ -369,8 +370,8 @@ public class MainFxController implements Initializable {
     }
 
     /*
-    * Google Translation V3 설정값을 Preferences에 저장합니다.
-    */
+     * Google Translation V3 설정값을 Preferences에 저장합니다.
+     */
     @FXML
     void clickBtnSaveSettings(ActionEvent event) {
         Platform.runLater(() -> {
@@ -388,16 +389,16 @@ public class MainFxController implements Initializable {
     }
 
     /*
-    * 종료버튼 Event
-    */
+     * 종료버튼 Event
+     */
     @FXML
     void clickMenuClose(ActionEvent event) {
         Platform.exit();
     }
 
     /*
-    * 메뉴버튼 Event
-    */
+     * 메뉴버튼 Event
+     */
     @FXML
     void clickMenuAbout(ActionEvent event) {
         String title = JavaFxApplication.PROGRAM_VER;
@@ -413,8 +414,8 @@ public class MainFxController implements Initializable {
     }
 
     /*
-    * 메세지 팝업 도구
-    */
+     * 메세지 팝업 도구
+     */
     private void showMsgbox(String title, String header, String content, Alert.AlertType alertType) {
         Alert alert = new Alert(alertType);
         alert.setTitle(title);
@@ -435,8 +436,8 @@ public class MainFxController implements Initializable {
     }
 
     /*
-    * Window Panel 초기화 이벤트
-    */
+     * Window Panel 초기화 이벤트
+     */
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         Platform.runLater(() -> {
@@ -449,9 +450,9 @@ public class MainFxController implements Initializable {
     }
 
     /*
-    * 드래그앤 드랍 이벤트
-    * 드래그한 파일 목록을 File ListView에 추가합니다.
-    */
+     * 드래그앤 드랍 이벤트
+     * 드래그한 파일 목록을 File ListView에 추가합니다.
+     */
     @FXML
     void dragDroppedOnListFiles(DragEvent event) {
         Dragboard dragboard = event.getDragboard();
@@ -461,8 +462,8 @@ public class MainFxController implements Initializable {
     }
 
     /*
-    * 드래그한 파일을 ListView에 추가하기 위해 TransferMode를 LINK로 설정합니다.
-    */
+     * 드래그한 파일을 ListView에 추가하기 위해 TransferMode를 LINK로 설정합니다.
+     */
     @FXML
     void dragOverOnListFiles(DragEvent event) {
         if (event.getDragboard().hasFiles()) {
@@ -471,9 +472,9 @@ public class MainFxController implements Initializable {
     }
 
     /*
-    * Drag한 상태로 ListView 영역에 들어오면 배경색 변경
-    * #FFFACD: 연한 노란색
-    */
+     * Drag한 상태로 ListView 영역에 들어오면 배경색 변경
+     * #FFFACD: 연한 노란색
+     */
     @FXML
     void dragEnteredOnListFiles(DragEvent event) {
         lstFiles.setStyle("-fx-background-color : #FFFACD");
@@ -489,4 +490,3 @@ public class MainFxController implements Initializable {
     }
 
 }
-

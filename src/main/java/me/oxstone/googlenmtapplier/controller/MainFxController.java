@@ -211,7 +211,8 @@ public class MainFxController implements Initializable {
                 if (id > 0 && segment.text.getText().trim().isEmpty()) {
                     // 잠긴 세그먼트 건너뜀
                     if (!isLockedSegment(tu)) {
-                        segment.text.setCodedText(targetSegmentMap.get(segment.getId())); // 타겟 텍스트 삽입
+                        String targetText = targetSegmentMap.get(segment.getId());
+                        segment.text.setCodedText(targetText); // 타겟 텍스트 삽입
                         changeSegmentStatus(tu, id); // 세그먼트 상태변경
                     }
                 }

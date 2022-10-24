@@ -278,8 +278,9 @@ public class MainFxController implements Initializable {
             }
             for (int i = 0; i < segments.size(); i++) {
                 Segment segment = segments.get(i);
-                if (Integer.parseInt(segment.getId()) > 0 && !segment.text.getText().isEmpty()) {
-                    segmentMap.put(segment.getId(), segment.text.getText());
+                if (Integer.parseInt(segment.getId()) > 0) {
+                    if (!(flag == FLAG.SOURCE && segment.text.getText().isEmpty()))
+                        segmentMap.put(segment.getId(), segment.text.getText());
                 }
             }
         }

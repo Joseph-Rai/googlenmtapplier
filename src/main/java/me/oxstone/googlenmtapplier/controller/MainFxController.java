@@ -210,7 +210,7 @@ public class MainFxController implements Initializable {
                 int id = Integer.parseInt(segment.getId());
                 if (id > 0 && segment.text.getText().trim().isEmpty()) {
                     // 잠긴 세그먼트 건너뜀
-                    if (!isLockedSegment(tu)) {
+                    if (!isLockedSegment(tu, id)) {
                         String targetText = targetSegmentMap.get(segment.getId());
                         segment.text.setCodedText(targetText); // 타겟 텍스트 삽입
                         changeSegmentStatus(tu, id); // 세그먼트 상태변경
@@ -241,13 +241,14 @@ public class MainFxController implements Initializable {
     /*
      * 잠긴 세그먼트인지 판별합니다.
      */
-    private boolean isLockedSegment(ITextUnit tu) {
+    private boolean isLockedSegment(ITextUnit tu, int id) {
         GenericSkeleton genericSkeleton = (GenericSkeleton) tu.getSkeleton();
         for (GenericSkeletonPart gsp : genericSkeleton.getParts()) {
             StringBuilder data = gsp.getData();
 
             // 잠금 세그먼트 식별
-            if (data.indexOf("locked=\"true\"") > 0) {
+            if (data.indexOf("locked=\"true\"") >= 0 &&
+                data.indexOf("id=\"" + String.valueOf(id) + "\"") >= 0) {
                 return true;
             }
         }

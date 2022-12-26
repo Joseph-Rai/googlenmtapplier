@@ -13,10 +13,10 @@ import org.springframework.context.ConfigurableApplicationContext;
 public class JavaFxApplication extends Application {
 
     private ConfigurableApplicationContext applicationContext;
-    public static final String PROGRAM_VER = "Google NMT Applier Ver 1.0.4";
+    public static final String PROGRAM_VER = "Google NMT Applier Ver 1.0.5";
     public static final String PROGRAM_AUTHOR = "oxstone7@gmail.com";
     public static final String PROGRAM_COPYRIGHT = "World Mission Society Church of God";
-    public static final String PROGRAM_LAST_MODIFIED = "25 Aug 2022";
+    public static final String PROGRAM_LAST_MODIFIED = "26 Dec 2022";
 
     @Override
     public void init() {

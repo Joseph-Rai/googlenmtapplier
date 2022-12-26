@@ -31,6 +31,7 @@ import org.springframework.stereotype.Controller;
 import java.io.File;
 import java.net.URL;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.prefs.Preferences;
 
 import static net.sf.okapi.common.LocaleId.ENGLISH;
@@ -207,8 +208,8 @@ public class MainFxController implements Initializable {
         for (ITextUnit tu : textUnits) {
             List<Segment> segments = tu.getTargetSegments(ENGLISH).asList();
             for (Segment segment : segments) {
-                int id = Integer.parseInt(segment.getId());
-                if (id > 0 && segment.text.getText().trim().isEmpty()) {
+                String id = segment.getId();
+                if (id.compareTo("0") > 0 && segment.text.getText().trim().isEmpty()) {
                     // 잠긴 세그먼트 건너뜀
                     if (!isLockedSegment(tu, id)) {
                         String targetText = targetSegmentMap.get(segment.getId());
@@ -223,7 +224,7 @@ public class MainFxController implements Initializable {
     /*
      * 세그먼트 상태를 변경합니다. | 미번역 -> 초안, NMT
      */
-    private void changeSegmentStatus(ITextUnit tu, int segmentId) {
+    private void changeSegmentStatus(ITextUnit tu, String segmentId) {
         GenericSkeleton genericSkeleton = (GenericSkeleton) tu.getSkeleton();
         for (GenericSkeletonPart gsp : genericSkeleton.getParts()) {
             StringBuilder data = gsp.getData();
@@ -241,14 +242,14 @@ public class MainFxController implements Initializable {
     /*
      * 잠긴 세그먼트인지 판별합니다.
      */
-    private boolean isLockedSegment(ITextUnit tu, int id) {
+    private boolean isLockedSegment(ITextUnit tu, String id) {
         GenericSkeleton genericSkeleton = (GenericSkeleton) tu.getSkeleton();
         for (GenericSkeletonPart gsp : genericSkeleton.getParts()) {
             StringBuilder data = gsp.getData();
 
             // 잠금 세그먼트 식별
             if (data.indexOf("locked=\"true\"") >= 0 &&
-                data.indexOf("id=\"" + String.valueOf(id) + "\"") >= 0) {
+                    data.indexOf("id=\"" + id + "\"") >= 0) {
                 return true;
             }
         }
@@ -259,8 +260,12 @@ public class MainFxController implements Initializable {
      * 타겟 세그먼트의 문장들을 NMT 결과로 교체합니다.
      */
     private void replaceToTranslatedText(Map<String, String> targetSegmentMap, Map<String, String> batchSegmentMap) {
-        for (int i = 1; i <= targetSegmentMap.size(); i++) {
-            String key = String.valueOf(i);
+        // for (int i = 1; i <= targetSegmentMap.size(); i++) {
+        // String key = String.valueOf(i);
+        // targetSegmentMap.put(key, batchSegmentMap.get(key));
+        // }
+        for (Entry<String, String> entry : targetSegmentMap.entrySet()) {
+            String key = entry.getKey();
             targetSegmentMap.put(key, batchSegmentMap.get(key));
         }
     }
@@ -279,7 +284,7 @@ public class MainFxController implements Initializable {
             }
             for (int i = 0; i < segments.size(); i++) {
                 Segment segment = segments.get(i);
-                if (Integer.parseInt(segment.getId()) > 0) {
+                if (segment.getId().compareTo("0") > 0) {
                     if (!(flag == FLAG.SOURCE && segment.text.getText().isEmpty()))
                         segmentMap.put(segment.getId(), segment.text.getText());
                 }

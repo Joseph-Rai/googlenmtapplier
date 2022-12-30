@@ -1,22 +1,30 @@
 package me.oxstone.googlenmtapplier.controller;
 
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-import javafx.scene.input.DragEvent;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.TransferMode;
+import javafx.scene.input.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
+import lombok.RequiredArgsConstructor;
 import me.oxstone.googlenmtapplier.JavaFxApplication;
-import me.oxstone.googlenmtapplier.utils.AdvancedTranslate;
-import me.oxstone.googlenmtapplier.utils.AdvancedTranslationSettings;
+import me.oxstone.googlenmtapplier.data.Language;
+import me.oxstone.googlenmtapplier.nmtmodule.GoogleV2;
+import me.oxstone.googlenmtapplier.nmtmodule.GoogleV3;
+import me.oxstone.googlenmtapplier.nmtmodule.NmtModule;
+import me.oxstone.googlenmtapplier.nmtsettings.GoogleV2Settings;
+import me.oxstone.googlenmtapplier.nmtsettings.GoogleV3Settings;
+import me.oxstone.googlenmtapplier.nmtsettings.NmtSettings;
+import me.oxstone.googlenmtapplier.repository.LanguageRepository;
 import net.rgielen.fxweaver.core.FxmlView;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.EventType;
+import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.exceptions.OkapiMergeException;
 import net.sf.okapi.common.filterwriter.IFilterWriter;
 import net.sf.okapi.common.resource.ITextUnit;
@@ -25,21 +33,52 @@ import net.sf.okapi.common.resource.Segment;
 import net.sf.okapi.common.skeleton.GenericSkeleton;
 import net.sf.okapi.common.skeleton.GenericSkeletonPart;
 import net.sf.okapi.filters.xliff.XLIFFFilter;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.dom4j.*;
+import org.dom4j.io.SAXReader;
+import org.dom4j.tree.DefaultElement;
 import org.springframework.stereotype.Controller;
+import org.xml.sax.SAXException;
 
+import javax.annotation.Nonnull;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.prefs.Preferences;
+import java.util.stream.Collectors;
 
 import static net.sf.okapi.common.LocaleId.ENGLISH;
 import static net.sf.okapi.common.LocaleId.KOREAN;
 
 @Controller
+@RequiredArgsConstructor
 @FxmlView("MainFx.fxml")
 public class MainFxController implements Initializable {
+
+    private static final String DESKTOP_PATH =
+            System.getProperty("user.home") + "\\Desktop";
+    private static final String SOURCE_PATH = "source_path";
+    private static final String JSON = "json_path";
+    private static final String PROJECT = "project_id";
+    private static final String MODEL = "model_id";
+    private static final String LOCATION = "location_id";
+    private static final String GLOSSARY = "glossary_id";
+    private static final String APIKEY = "api_key";
+    private static final String APPLY_MODEL = "apply_model";
+    private static final String APPLY_GLOSSARY = "apply_glossary";
+    private static final String TRANSLATION_FROM_SOURCE = "translation_from_source";
+    private static final String TRANSLATION_FROM_TARGET = "translation_from_target";
+    private static final String TARGET_FORMAT_TRANSLATION_TEXT_ONLY = "target_format_translation_text_only";
+    private static final String TARGET_FORMAT_TARGET_AND_TRANSLATION_TEXT = "target_format_target_and_translation_text";
+    private static final String NMT_MODULE = "nmt_module";
+    private static final String FILE_FILTER = "file_filter";
+    private static final String SAVED_SOURCE_LANGUAGE = "saved_source_language";
+    private static final String SAVED_TARGET_LANGUAGE = "saved_target_language";
+
+    private static final Preferences preference =
+            Preferences.userNodeForPackage(MainFxController.class);
 
     @FXML
     private TextField txtJsonPath;
@@ -60,19 +99,55 @@ public class MainFxController implements Initializable {
     private TextField txtGlossary;
 
     @FXML
+    private TextField txtApiKey;
+
+    @FXML
+    private ComboBox<String> cboSourceLang;
+
+    @FXML
+    private ComboBox<String> cboTargetLang;
+
+    @FXML
+    private ComboBox<String> cboNmtModule;
+
+    @FXML
+    private CheckBox chkGlossary;
+
+    @FXML
+    private CheckBox chkModel;
+
+    @FXML
+    private RadioButton optFromTarget;
+
+    @FXML
+    private RadioButton optFromSource;
+
+    @FXML
+    private RadioButton optTranslatedTextOnly;
+
+    @FXML
+    private RadioButton optTargetAndTranslatedText;
+
+    @FXML
+    private Button btnDetectLanguage;
+
+    @FXML
+    private ComboBox<String> cboFileFilter;
+
+    @FXML
     private ListView<String> lstFiles = new ListView<>();
 
-    private static final String DESKTOP_PATH = System.getProperty("user.home") + "\\Desktop";
-    private static final String SOURCE_PATH = "source_path";
-    private static final String JSON = "json_path";
-    private static final String PROJECT = "project_id";
-    private static final String MODEL = "model_id";
-    private static final String LOCATION = "location_id";
-    private static final String GLOSSARY = "glossary_id";
-    private static final Preferences preference = Preferences.userNodeForPackage(MainFxController.class);
-    private AdvancedTranslationSettings settings;
-
+    private NmtSettings nmtSettings;
+    private NmtModule nmtModule;
+    private String typedText;
+    private long lastTypedTime;
     private XLIFFFilter filter = new XLIFFFilter();
+
+    private String docSourceLanguage;
+    private String docTargetLanguage;
+
+    @Nonnull
+    final LanguageRepository languageRepository;
 
     private enum FLAG {
         SOURCE, TARGET
@@ -82,29 +157,92 @@ public class MainFxController implements Initializable {
         SINGLE, MULTI
     }
 
-    @Autowired
-    public MainFxController() {
-        setAdvancedTranslationSettings();
+    /*
+     * Window Panel 초기화 이벤트
+     */
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+        // 번역모듈 목록 초기화
+        cboNmtModule.getItems().addAll(
+                "Google Translation V2",
+                "Google Translation V3"
+        );
+        cboNmtModule.getSelectionModel().select("Google Translation V3");
+
+        cboFileFilter.getItems().addAll(
+                "SDL Xliff"
+        );
+        cboFileFilter.getSelectionModel().select("SDL Xliff");
+
+        // Home 세팅값 불러오기
+        cboNmtModule.getSelectionModel().select(preference.get(NMT_MODULE, "Google Translation V3"));
+        cboFileFilter.getSelectionModel().select(preference.get(FILE_FILTER, "SDL Xliff"));
+        cboSourceLang.getSelectionModel().select(preference.get(SAVED_SOURCE_LANGUAGE, "Korean"));
+        cboTargetLang.getSelectionModel().select(preference.get(SAVED_TARGET_LANGUAGE, "English"));
+        optFromSource.selectedProperty().set(Boolean.parseBoolean(preference.get(TRANSLATION_FROM_SOURCE, "true")));
+        optFromTarget.selectedProperty().set(Boolean.parseBoolean(preference.get(TRANSLATION_FROM_TARGET, "false")));
+        optTranslatedTextOnly.selectedProperty().set(Boolean.parseBoolean(preference.get(TARGET_FORMAT_TRANSLATION_TEXT_ONLY, "true")));
+        optTargetAndTranslatedText.selectedProperty().set(Boolean.parseBoolean(preference.get(TARGET_FORMAT_TARGET_AND_TRANSLATION_TEXT, "false")));
+
+        // 소스언어, 타겟언어 목록 초기화
+        initComboBoxItems(cboSourceLang);
+        initComboBoxItems(cboTargetLang);
+        cboSourceLang.getSelectionModel().select("Korean");
+        cboTargetLang.getSelectionModel().select("English");
+
+        TargetTextFormatOptionDisable();
+
+        //Google Settings Preference 값 불러오기
+        txtApiKey.setText(preference.get(APIKEY, ""));
+        txtJsonPath.setText(preference.get(JSON, ""));
+        txtProject.setText(preference.get(PROJECT, "34036614342"));
+        txtLocation.setText(preference.get(LOCATION, "us-central1"));
+        txtModel.setText(preference.get(MODEL, "TRL6331012141990019072"));
+        txtGlossary.setText(preference.get(GLOSSARY, "ko_en_glossary_20211229"));
+        chkModel.selectedProperty().set(Boolean.parseBoolean(preference.get(APPLY_MODEL, "false")));
+        chkGlossary.selectedProperty().set(Boolean.parseBoolean(preference.get(APPLY_GLOSSARY, "false")));
+
+        // BtnDetectLanguage 비활성화
+        btnDetectLanguage.setDisable(true);
+
+        // lstFiles 객체에 리스너 추가
+        lstFiles.getItems().addListener((ListChangeListener<? super String>) change -> {
+            int size = lstFiles.getItems().size();
+            btnDetectLanguage.setDisable(size == 0);
+            if (size > 0) {
+                lstFiles.getSelectionModel().select(size - 1);
+            }
+        });
     }
 
-    /*
-     * Google Translation V3의 설정값
-     */
-    private void setAdvancedTranslationSettings() {
-        String json = preference.get(JSON, "");
-        String project = preference.get(PROJECT, "34036614342");
-        String location = preference.get(LOCATION, "us-central1");
-        String model = preference.get(MODEL, "TRL6331012141990019072");
-        String glossary = preference.get(GLOSSARY, "ko_en_glossary_20211229");
+    private ObservableList<String> getGlossaryFilteredObservableLanguages() {
+        return FXCollections.observableArrayList(
+                languageRepository.findAll().stream()
+                        .filter(language -> language.getGlossary())
+                        .map(lang -> lang.getName())
+                        .collect(Collectors.toList())
+        );
+    }
 
-        settings = new AdvancedTranslationSettings(json, project, location, model, glossary);
+    private ObservableList<String> getNameFilteredObservableLanguages(String text) {
+        return getAllObservableLanguages()
+                .filtered(s -> s.toLowerCase().startsWith(text));
+    }
+
+    private ObservableList<String> getAllObservableLanguages() {
+        return FXCollections.observableArrayList(
+                languageRepository.findAll().stream()
+                .map(lang -> lang.getName())
+                .collect(Collectors.toList())
+        );
     }
 
     /*
      * 학습형 구글번역(NMT)를 적용합니다.
      */
     @FXML
-    void clickBtnApplyNMT(ActionEvent event) {
+    void clickBtnApplyNMT(ActionEvent event) throws IOException {
+
         // 리스트에 파일목록이 없으면 종료
         if (lstFiles.getItems().size() < 1) {
             String title = "Error";
@@ -112,6 +250,32 @@ public class MainFxController implements Initializable {
             String msg = "No file selected.";
             showMsgbox(title, header, msg, Alert.AlertType.ERROR);
             return;
+        }
+
+        // 선택한 설정 저장
+        preference.put(NMT_MODULE, cboNmtModule.getSelectionModel().getSelectedItem());
+        preference.put(FILE_FILTER, cboFileFilter.getSelectionModel().getSelectedItem());
+        preference.put(SAVED_SOURCE_LANGUAGE, cboSourceLang.getSelectionModel().getSelectedItem());
+        preference.put(SAVED_TARGET_LANGUAGE, cboTargetLang.getSelectionModel().getSelectedItem());
+        preference.put(TRANSLATION_FROM_SOURCE, String.valueOf(optFromSource.selectedProperty().getValue()));
+        preference.put(TRANSLATION_FROM_TARGET, String.valueOf(optFromTarget.selectedProperty().getValue()));
+        preference.put(TARGET_FORMAT_TRANSLATION_TEXT_ONLY, String.valueOf(optTranslatedTextOnly.selectedProperty().getValue()));
+        preference.put(TARGET_FORMAT_TARGET_AND_TRANSLATION_TEXT, String.valueOf(optTargetAndTranslatedText.selectedProperty().getValue()));
+
+        // cboMntModule 값에 따라 Settings, MntModule 설정
+        switch (cboNmtModule.getValue()) {
+            case "Google Translation V2":
+                nmtSettings = new GoogleV2Settings();
+                prepareSettings();
+                nmtModule = new GoogleV2(nmtSettings);
+                //세팅창 조정로직 추가
+                break;
+            case "Google Translation V3":
+                nmtSettings = new GoogleV3Settings();
+                prepareSettings();
+                nmtModule = new GoogleV3(nmtSettings);
+                //세팅창 조정로직 추가
+                break;
         }
 
         String msg;
@@ -122,19 +286,24 @@ public class MainFxController implements Initializable {
                 File sourceFile = new File(path);
                 preference.put(SOURCE_PATH, sourceFile.getParent());
 
+                // 문서구조(TextUnits) 추출
                 List<Event> allFilterEvents = getAllEventsFromFilter(sourceFile);
                 List<ITextUnit> textUnits = getTextUnits(allFilterEvents);
 
+                // 문서구조로부터 소스 세그먼트 및 타겟 세그먼트 Map<ID, 문장> 추출
                 Map<String, String> sourceSegmentMap = getSegmentMap(textUnits, FLAG.SOURCE);
-
-                AdvancedTranslate at = new AdvancedTranslate(settings);
-                Map<String, String> batchSegmentMap = at.batchTranslateTextWithGlossaryAndModel(sourceSegmentMap);
-
                 Map<String, String> targetSegmentMap = getSegmentMap(textUnits, FLAG.TARGET);
-                replaceToTranslatedText(targetSegmentMap, batchSegmentMap);
 
-                applyTranslatedTextToTextUnit(textUnits, targetSegmentMap);
+                // 번역 후 문장구조에 적용
+                Map<String, String> batchSegmentMap;
+                if (optFromSource.selectedProperty().getValue()) {
+                    batchSegmentMap = nmtModule.batchTranslateText(sourceSegmentMap);
+                } else {
+                    batchSegmentMap = nmtModule.batchTranslateText(targetSegmentMap);
+                }
+                applyTranslateResultToTextUnits(textUnits, targetSegmentMap, batchSegmentMap);
 
+                // 파일로 저장
                 extractTargetFile(allFilterEvents, sourceFile);
             }
 
@@ -156,6 +325,81 @@ public class MainFxController implements Initializable {
 
     }
 
+    /**
+     * 폼에 있는 값을 Settings 객체에 저장
+     */
+    private void prepareSettings() {
+        nmtSettings.setApiKey(txtApiKey.getText());
+        nmtSettings.setJson(txtJsonPath.getText());
+        nmtSettings.setProject(txtProject.getText());
+        nmtSettings.setLocation(txtLocation.getText());
+        nmtSettings.setModel(txtModel.getText());
+        nmtSettings.setGlossary(txtGlossary.getText());
+        languageRepository.findByName(cboSourceLang.getValue()).stream()
+                .map(language -> language.getCode())
+                .findFirst()
+                .ifPresent(code -> nmtSettings.setSourceLangCode(code));
+        languageRepository.findByName(cboTargetLang.getValue()).stream()
+                .map(language -> language.getCode())
+                .findFirst()
+                .ifPresent(code -> nmtSettings.setTargetLangCode(code));
+        nmtSettings.setApplyModel(chkModel.selectedProperty().getValue());
+        nmtSettings.setApplyGlossary(chkGlossary.selectedProperty().getValue());
+    }
+
+    /**
+     * 번역결과를 TextUnits에 적용합니다.
+     * @param textUnits         : sdlxliff 구조체
+     * @param targetSegmentMap  : 번역결과를 TextUnis에 적용시키기 위해 필요한 정보 추출용
+     * @param batchSegmentMap   : 번역결과 Map
+     */
+    private void applyTranslateResultToTextUnits(List<ITextUnit> textUnits, Map<String, String> targetSegmentMap, Map<String, String> batchSegmentMap) {
+        replaceToTranslatedText(targetSegmentMap, batchSegmentMap);
+        applyTranslatedTextToTextUnit(textUnits, targetSegmentMap);
+    }
+
+    /*
+     * 타겟 세그먼트의 문장들을 NMT 결과로 교체합니다.
+     */
+    private void replaceToTranslatedText(Map<String, String> targetSegmentMap, Map<String, String> batchSegmentMap) {
+        for (Entry<String, String> entry : targetSegmentMap.entrySet()) {
+            String key = entry.getKey();
+            if (!optTranslatedTextOnly.isDisabled() && optTranslatedTextOnly.selectedProperty().getValue()) {
+                targetSegmentMap.put(key, batchSegmentMap.get(key));
+            } else {
+                targetSegmentMap.put(key, targetSegmentMap.get(key) + "\n" + batchSegmentMap.get(key));
+            }
+        }
+    }
+
+    /*
+     * Google Translation V3 API에서 받아온 문장 리스트를 타겟 세그먼트에 적용 시킵니다.
+     */
+    private void applyTranslatedTextToTextUnit(List<ITextUnit> textUnits, Map<String, String> targetSegmentMap) {
+        for (ITextUnit tu : textUnits) {
+            LocaleId targetLocaleId;
+            if (optFromSource.selectedProperty().getValue()) {
+                targetLocaleId = LocaleId.fromString(docSourceLanguage);
+            } else {
+                targetLocaleId = LocaleId.fromString(docTargetLanguage);
+            }
+
+            List<Segment> segments = tu.getTargetSegments(targetLocaleId).asList();
+            for (Segment segment : segments) {
+                String id = segment.getId();
+                if (id.compareTo("0") > 0 && !isLockedSegment(tu, id)) {
+                    if (!(optFromSource.selectedProperty().getValue() && !segment.text.getText().trim().isEmpty())) {
+                        String targetText = targetSegmentMap.get(id);
+                        segment.text.setCodedText(targetText); // 타겟 텍스트 삽입
+                        if (optFromSource.selectedProperty().getValue()) {
+                            changeSegmentStatus(tu, id); // 세그먼트 상태변경(Draft + NMT)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     /*
      * Event 정보에서 Segment 정보를 가져옵니다. Segment 정보는 TestUnit 내부에 있습니다.
      */
@@ -172,14 +416,35 @@ public class MainFxController implements Initializable {
     /*
      * Filter에서 모든 Event 목록을 가져옵니다. 각 Event를 통해 Segment 정보를 추출할 수 있습니다.
      */
-    private List<Event> getAllEventsFromFilter(File sourceFile) {
+    private List<Event> getAllEventsFromFilter(File sourceFile) throws DocumentException {
         List<Event> events = new ArrayList<>();
-        RawDocument document = new RawDocument(sourceFile.toURI(), "UTF-8-BOM", KOREAN, ENGLISH);
+        detectLanguagePairFromFile(sourceFile);
+        RawDocument document = new RawDocument(sourceFile.toURI(), "UTF-8-BOM",
+                LocaleId.fromString(docSourceLanguage), LocaleId.fromString(docTargetLanguage));
         filter.open(document);
         while (filter.hasNext()) {
             events.add(filter.next());
         }
         return events;
+    }
+
+    private void detectLanguagePairFromFile(File sourceFile) throws DocumentException {
+        SAXReader saxReader = new SAXReader();
+        Document xmlDoc = saxReader.read(sourceFile);
+        List<Node> contents = xmlDoc.getRootElement().content();
+        for (Node content : contents) {
+            if (content.getName() != null && content.getName().equals("file")) {
+                List<Attribute> attributes = ((DefaultElement) content).attributes();
+                for (Attribute attribute : attributes) {
+                    if (attribute.getName() != null && attribute.getName().equals("source-language")) {
+                        docSourceLanguage = attribute.getValue();
+                    }
+                    if (attribute.getName() != null && attribute.getName().equals("target-language")) {
+                        docTargetLanguage = attribute.getValue();
+                    }
+                }
+            }
+        }
     }
 
     /*
@@ -198,26 +463,6 @@ public class MainFxController implements Initializable {
         } finally {
             if (filter != null)
                 filter.close();
-        }
-    }
-
-    /*
-     * Google Translation V3 API에서 받아온 문장 리스트를 타겟 세그먼트에 적용 시킵니다.
-     */
-    private void applyTranslatedTextToTextUnit(List<ITextUnit> textUnits, Map<String, String> targetSegmentMap) {
-        for (ITextUnit tu : textUnits) {
-            List<Segment> segments = tu.getTargetSegments(ENGLISH).asList();
-            for (Segment segment : segments) {
-                String id = segment.getId();
-                if (id.compareTo("0") > 0 && segment.text.getText().trim().isEmpty()) {
-                    // 잠긴 세그먼트 건너뜀
-                    if (!isLockedSegment(tu, id)) {
-                        String targetText = targetSegmentMap.get(segment.getId());
-                        segment.text.setCodedText(targetText); // 타겟 텍스트 삽입
-                        changeSegmentStatus(tu, id); // 세그먼트 상태변경
-                    }
-                }
-            }
         }
     }
 
@@ -257,20 +502,6 @@ public class MainFxController implements Initializable {
     }
 
     /*
-     * 타겟 세그먼트의 문장들을 NMT 결과로 교체합니다.
-     */
-    private void replaceToTranslatedText(Map<String, String> targetSegmentMap, Map<String, String> batchSegmentMap) {
-        // for (int i = 1; i <= targetSegmentMap.size(); i++) {
-        // String key = String.valueOf(i);
-        // targetSegmentMap.put(key, batchSegmentMap.get(key));
-        // }
-        for (Entry<String, String> entry : targetSegmentMap.entrySet()) {
-            String key = entry.getKey();
-            targetSegmentMap.put(key, batchSegmentMap.get(key));
-        }
-    }
-
-    /*
      * TextUnit 객체에서 각 Segment 목록을 추출합니다.
      */
     private Map<String, String> getSegmentMap(List<ITextUnit> textUnits, FLAG flag) {
@@ -280,7 +511,7 @@ public class MainFxController implements Initializable {
             if (flag == FLAG.SOURCE) {
                 segments = tu.getSourceSegments().asList();
             } else {
-                segments = tu.getTargetSegments(ENGLISH).asList();
+                segments = tu.getTargetSegments(LocaleId.fromString(docTargetLanguage)).asList();
             }
             for (int i = 0; i < segments.size(); i++) {
                 Segment segment = segments.get(i);
@@ -378,17 +609,18 @@ public class MainFxController implements Initializable {
     }
 
     /*
-     * Google Translation V3 설정값을 Preferences에 저장합니다.
+     * Google Translation 설정값을 Preferences에 저장합니다.
      */
     @FXML
     void clickBtnSaveSettings(ActionEvent event) {
-        Platform.runLater(() -> {
-            preference.put(JSON, txtJsonPath.getText());
-            preference.put(PROJECT, txtProject.getText());
-            preference.put(MODEL, txtModel.getText());
-            preference.put(LOCATION, txtLocation.getText());
-            preference.put(GLOSSARY, txtGlossary.getText());
-        });
+        preference.put(JSON, txtJsonPath.getText());
+        preference.put(PROJECT, txtProject.getText());
+        preference.put(MODEL, txtModel.getText());
+        preference.put(LOCATION, txtLocation.getText());
+        preference.put(GLOSSARY, txtGlossary.getText());
+        preference.put(APIKEY, txtApiKey.getText());
+        preference.put(APPLY_MODEL, String.valueOf(chkModel.selectedProperty().getValue()));
+        preference.put(APPLY_GLOSSARY, String.valueOf(chkGlossary.selectedProperty().getValue()));
 
         String title = JavaFxApplication.PROGRAM_VER;
         String header = "" +
@@ -444,20 +676,6 @@ public class MainFxController implements Initializable {
     }
 
     /*
-     * Window Panel 초기화 이벤트
-     */
-    @Override
-    public void initialize(URL url, ResourceBundle resourceBundle) {
-        Platform.runLater(() -> {
-            txtJsonPath.setText(settings.getJson());
-            txtProject.setText(settings.getProject());
-            txtLocation.setText(settings.getLocation());
-            txtModel.setText(settings.getModel());
-            txtGlossary.setText(settings.getGlossary());
-        });
-    }
-
-    /*
      * 드래그앤 드랍 이벤트
      * 드래그한 파일 목록을 File ListView에 추가합니다.
      */
@@ -497,4 +715,154 @@ public class MainFxController implements Initializable {
         lstFiles.setStyle("-fx-background-color : #FFFFFF");
     }
 
+    /**
+     * cboSourceLang 프레스 이벤트
+     */
+    @FXML
+    void pressCboSourceLang(MouseEvent event) {
+        cboSourceLang.getItems().clear();
+        cboSourceLang.setItems(getAllObservableLanguages());
+    }
+
+    /**
+     * cboTargetLang 프레스 이벤트
+     */
+    @FXML
+    void pressCboTargetLang(MouseEvent event) {
+        cboTargetLang.getItems().clear();
+        cboTargetLang.setItems(getAllObservableLanguages());
+    }
+
+    /**
+     * 문서에 세팅된 Source Language와 Target Language를 찾아
+     * 콤보박스가 해당 언어를 선택하게 합니다.
+     */
+    @FXML
+    void clickBtnDetectLanguage(ActionEvent event) throws DocumentException {
+        if (!(lstFiles.getItems().size() > 0) || lstFiles.getSelectionModel().getSelectedItem() == null) {
+            String title = "Error";
+            String header = "Error";
+            String msg = "No file selected.";
+            showMsgbox(title, header, msg, Alert.AlertType.ERROR);
+            return;
+        }
+
+        detectLanguagePairFromFile(new File(lstFiles.getSelectionModel().getSelectedItem()));
+        String tmp;
+        if (!docSourceLanguage.contains("zh")) {
+            tmp = docSourceLanguage.substring(0, docSourceLanguage.indexOf("-"));
+        } else {
+            tmp = docSourceLanguage;
+        }
+        languageRepository.findByCode(tmp)
+                .map(Language::getName)
+                .ifPresent(s -> cboSourceLang.getSelectionModel().select(s));
+
+        if (!docTargetLanguage.contains("zh")) {
+            tmp = docTargetLanguage.substring(0, docTargetLanguage.indexOf("-"));
+        } else {
+            tmp = docTargetLanguage;
+        }
+        languageRepository.findByCode(tmp)
+                .map(Language::getName)
+                .ifPresent(s -> cboTargetLang.getSelectionModel().select(s));
+    }
+
+    @FXML
+    void changeCboNmtModule(ActionEvent event) {
+        initComboBoxItems(cboSourceLang);
+        initComboBoxItems(cboTargetLang);
+    }
+
+    /**
+     *  cboSourceLang으로 넘어온 KeyEvent를 처리합니다.
+     */
+    @FXML
+    void typeCboSourceLang(KeyEvent event) {
+        comboBoxKeyEventHandler(cboSourceLang, event);
+    }
+
+    /**
+     *  cboTargetLang으로 넘어온 KeyEvent를 처리합니다.
+     */
+    @FXML
+    void typeCboTargetLang(KeyEvent event) {
+        comboBoxKeyEventHandler(cboTargetLang, event);
+    }
+
+    /**
+     * ComboBox를  넘어온 KeyEvent를 처리합니다.
+     * @param comboBox  : 이벤트 대상 ComboBox
+     * @param event     : KeyEvent
+     */
+    void comboBoxKeyEventHandler(ComboBox<String> comboBox, KeyEvent event) {
+        if (System.currentTimeMillis() - lastTypedTime > 1000) {
+            typedText = "";
+            initComboBoxItems(comboBox);
+        }
+        typedText += event.getCharacter().toLowerCase();
+        comboBox.getItems().removeIf(s -> !s.toLowerCase().contains(typedText));
+        if (!(comboBox.getItems().size() > 0)) {
+            typedText = typedText.substring(0, typedText.length() - 1);
+            initComboBoxItems(comboBox);
+            comboBox.getItems().removeIf(s -> !s.toLowerCase().contains(typedText));
+        }
+        lastTypedTime = System.currentTimeMillis();
+    }
+
+
+
+    void initComboBoxItems(ComboBox<String> comboBox) {
+        String tmpLang = comboBox.getValue();
+
+        comboBox.getItems().clear();
+
+        switch (cboNmtModule.getValue()) {
+            case "Google Translation V2":
+                comboBox.setItems(getAllObservableLanguages());
+                break;
+            case "Google Translation V3":
+                comboBox.setItems(getGlossaryFilteredObservableLanguages());
+                break;
+        }
+
+        if (tmpLang != null && comboBox.getItems().contains(tmpLang)) {
+            comboBox.getSelectionModel().select(tmpLang);
+        } else {
+            comboBox.getSelectionModel().clearSelection();
+        }
+    }
+
+    @FXML
+    void changeOptFromTarget(ActionEvent event) {
+        TargetTextFormatOptionDisable();
+    }
+
+    @FXML
+    void changeOptFromSource(ActionEvent event) {
+        TargetTextFormatOptionDisable();
+    }
+
+    void TargetTextFormatOptionDisable() {
+        if (optFromTarget.selectedProperty().getValue()) {
+            optTranslatedTextOnly.setDisable(false);
+            optTargetAndTranslatedText.setDisable(false);
+        } else {
+            optTranslatedTextOnly.setDisable(true);
+            optTargetAndTranslatedText.setDisable(true);
+        }
+    }
+
+    @FXML
+    void pressLblSwitchLanguage(MouseEvent event) {
+        String sourceLang = cboSourceLang.getSelectionModel().getSelectedItem();
+        String targetLang = cboTargetLang.getSelectionModel().getSelectedItem();
+        cboSourceLang.getSelectionModel().select(targetLang);
+        cboTargetLang.getSelectionModel().select(sourceLang);
+    }
+
+    @FXML
+    void changeLstFiles(ActionEvent event) {
+
+    }
 }

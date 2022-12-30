@@ -2,14 +2,20 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
@@ -35,86 +41,181 @@
    <center>
       <TabPane prefWidth="200.0" styleClass="btn" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
         <tabs>
-          <Tab fx:id="tabSourceEditEnabler" styleClass="btn" text="Source File">
+          <Tab fx:id="tabSourceEditEnabler" styleClass="btn" text="Home">
                <content>
                   <BorderPane prefWidth="200.0">
                      <center>
-                        <AnchorPane fx:id="anchorSourceFile" prefHeight="59.0" prefWidth="600.0" BorderPane.alignment="CENTER">
+                        <AnchorPane fx:id="anchorSourceFile" prefWidth="600.0" BorderPane.alignment="CENTER">
                            <children>
-                              <Label fx:id="lblFolderPath" layoutX="24.0" layoutY="13.0" styleClass="lbl" text="Source sdlxliff">
+                              <Label fx:id="lblFolderPath" layoutX="24.0" layoutY="13.0" styleClass="title" text="Source sdlxliff">
                                  <font>
                                     <Font size="18.0" />
                                  </font>
                               </Label>
                               <Button fx:id="btnAdd" layoutX="484.0" layoutY="14.0" mnemonicParsing="false" onAction="#clickBtnAdd" prefHeight="23.0" prefWidth="39.0" text="+" />
-                              <ListView fx:id="lstFiles" layoutX="24.0" layoutY="44.0" onDragDropped="#dragDroppedOnListFiles" onDragEntered="#dragEnteredOnListFiles" onDragExited="#dragExitedOnListFiles" onDragOver="#dragOverOnListFiles" prefHeight="133.0" prefWidth="546.0" />
+                              <ListView fx:id="lstFiles" layoutX="24.0" layoutY="44.0" onDragDropped="#dragDroppedOnListFiles" onDragEntered="#dragEnteredOnListFiles" onDragExited="#dragExitedOnListFiles" onDragOver="#dragOverOnListFiles" onEditCommit="#changeLstFiles" prefHeight="133.0" prefWidth="546.0" />
                               <Button fx:id="btnDelete" layoutX="531.0" layoutY="14.0" mnemonicParsing="false" onAction="#clickBtnDelete" prefHeight="23.0" prefWidth="39.0" text="-" />
                            </children>
+                           <opaqueInsets>
+                              <Insets />
+                           </opaqueInsets>
                         </AnchorPane>
                      </center>
                      <bottom>
                         <HBox alignment="CENTER" prefHeight="33.0" prefWidth="600.0" spacing="30.0" BorderPane.alignment="CENTER">
                            <children>
-                              <Button fx:id="btnApplyNMT" mnemonicParsing="false" onAction="#clickBtnApplyNMT" styleClass="btn" text="Apply NMT" />
+                              <Button fx:id="btnApplyNMT" mnemonicParsing="false" onAction="#clickBtnApplyNMT" styleClass="btn" text="Apply NMT">
+                                 <HBox.margin>
+                                    <Insets bottom="15.0" top="10.0" />
+                                 </HBox.margin></Button>
                            </children>
-                           <padding>
-                              <Insets bottom="10.0" />
-                           </padding>
                         </HBox>
                      </bottom>
+                     <top>
+                        <AnchorPane prefWidth="200.0" BorderPane.alignment="CENTER">
+                           <children>
+                              <RadioButton fx:id="optFromSource" layoutX="24.0" layoutY="159.0" mnemonicParsing="false" onAction="#changeOptFromSource" selected="true" text="Source">
+                                 <padding>
+                                    <Insets bottom="5.0" top="20.0" />
+                                 </padding>
+                                 <toggleGroup>
+                                    <ToggleGroup fx:id="TranslateFrom" />
+                                 </toggleGroup>
+                              </RadioButton>
+                              <RadioButton fx:id="optFromTarget" layoutX="102.0" layoutY="159.0" mnemonicParsing="false" onAction="#changeOptFromTarget" text="Target" toggleGroup="$TranslateFrom">
+                                 <padding>
+                                    <Insets bottom="5.0" top="20.0" />
+                                 </padding>
+                              </RadioButton>
+                              <Label fx:id="lblFolderPath1" layoutX="26.0" layoutY="148.0" styleClass="title" text="To Translate From">
+                                 <font>
+                                    <Font size="18.0" />
+                                 </font>
+                              </Label>
+                              <Label fx:id="lblFolderPath11" layoutX="217.0" layoutY="149.0" styleClass="title" text="TargetText Format">
+                                 <font>
+                                    <Font size="18.0" />
+                                 </font>
+                              </Label>
+                              <RadioButton fx:id="optTranslatedTextOnly" layoutX="217.0" layoutY="159.0" mnemonicParsing="false" selected="true" text="Translated Text Only">
+                                 <padding>
+                                    <Insets bottom="5.0" top="20.0" />
+                                 </padding>
+                                 <toggleGroup>
+                                    <ToggleGroup fx:id="TargetTextFormat" />
+                                 </toggleGroup>
+                              </RadioButton>
+                              <RadioButton fx:id="optTargetAndTranslatedText" layoutX="363.0" layoutY="159.0" mnemonicParsing="false" text="Target + Translated Text" toggleGroup="$TargetTextFormat">
+                                 <padding>
+                                    <Insets bottom="5.0" top="20.0" />
+                                 </padding>
+                              </RadioButton>
+                              <Label fx:id="lblFolderPath12" layoutX="26.0" layoutY="79.0" styleClass="title" text="Language Pair">
+                                 <font>
+                                    <Font size="18.0" />
+                                 </font>
+                              </Label>
+                              <ComboBox fx:id="cboSourceLang" layoutX="116.0" layoutY="112.0" onKeyTyped="#typeCboSourceLang" onMousePressed="#pressCboSourceLang" prefWidth="150.0" />
+                              <ComboBox fx:id="cboTargetLang" layoutX="420.0" layoutY="111.0" onKeyTyped="#typeCboTargetLang" onMousePressed="#pressCboTargetLang" prefWidth="150.0" />
+                              <Label fx:id="lblSourceLang" layoutX="26.0" layoutY="113.0" styleClass="lbl" text="Source Lang">
+                                 <font>
+                                    <Font size="18.0" />
+                                 </font>
+                              </Label>
+                              <Label fx:id="lblTargetLang" layoutX="331.0" layoutY="114.0" styleClass="lbl" text="Target Lang">
+                                 <font>
+                                    <Font size="18.0" />
+                                 </font>
+                              </Label>
+                              <Label fx:id="lblFolderPath122" layoutX="24.0" layoutY="14.0" styleClass="title" text="Translation Module">
+                                 <font>
+                                    <Font size="18.0" />
+                                 </font>
+                              </Label>
+                              <ComboBox fx:id="cboNmtModule" layoutX="27.0" layoutY="46.0" onAction="#changeCboNmtModule" prefHeight="23.0" prefWidth="240.0" />
+                              <Button fx:id="btnDetectLanguage" layoutX="462.0" layoutY="78.0" mnemonicParsing="false" onAction="#clickBtnDetectLanguage" text="Detect Language" />
+                              <ImageView fx:id="lblSwtichLanguage" fitHeight="22.0" fitWidth="43.0" layoutX="284.0" layoutY="113.0" onMousePressed="#pressLblSwitchLanguage" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../../../../images/Switch%20Icon.png" />
+                                 </image>
+                              </ImageView>
+                              <Label fx:id="lblFolderPath1221" layoutX="330.0" layoutY="14.0" styleClass="title" text="File Filter">
+                                 <font>
+                                    <Font size="18.0" />
+                                 </font>
+                              </Label>
+                              <ComboBox fx:id="cboFileFilter" layoutX="330.0" layoutY="46.0" prefHeight="23.0" prefWidth="240.0" />
+                           </children>
+                        </AnchorPane>
+                     </top>
                   </BorderPane>
                </content>
           </Tab>
-            <Tab fx:id="tabSettings" styleClass="btn" text="Settings">
+            <Tab fx:id="tabSettings" styleClass="btn" text="Google Translation Settings">
                <content>
                   <BorderPane prefWidth="200.0">
-                     <center>
-                        <AnchorPane prefHeight="188.0" prefWidth="600.0" BorderPane.alignment="CENTER">
-                           <children>
-                              <Label fx:id="lblJsonPath" layoutX="24.0" layoutY="23.0" styleClass="lbl" text="Json Path">
-                                 <font>
-                                    <Font size="18.0" />
-                                 </font>
-                              </Label>
-                              <TextField fx:id="txtJsonPath" layoutX="147.0" layoutY="24.0" prefHeight="23.0" prefWidth="386.0" />
-                              <Button fx:id="btnSearchJson" layoutX="539.0" layoutY="24.0" mnemonicParsing="false" onAction="#clickBtnSearchJson" text="..." />
-                              <Label fx:id="lblProject" layoutX="24.0" layoutY="54.0" styleClass="lbl" text="Project">
-                                 <font>
-                                    <Font size="18.0" />
-                                 </font>
-                              </Label>
-                              <TextField fx:id="txtProject" layoutX="147.0" layoutY="54.0" prefHeight="23.0" prefWidth="386.0" />
-                              <Label fx:id="lblModel" layoutX="24.0" layoutY="83.0" styleClass="lbl" text="Model">
-                                 <font>
-                                    <Font size="18.0" />
-                                 </font>
-                              </Label>
-                              <TextField fx:id="txtModel" layoutX="147.0" layoutY="83.0" prefHeight="23.0" prefWidth="386.0" />
-                              <Label fx:id="lblLocation" layoutX="24.0" layoutY="112.0" styleClass="lbl" text="Location">
-                                 <font>
-                                    <Font size="18.0" />
-                                 </font>
-                              </Label>
-                              <TextField fx:id="txtLocation" layoutX="147.0" layoutY="112.0" prefHeight="23.0" prefWidth="386.0" />
-                              <Label fx:id="lblGlossary" layoutX="24.0" layoutY="141.0" styleClass="lbl" text="Glopssary">
-                                 <font>
-                                    <Font size="18.0" />
-                                 </font>
-                              </Label>
-                              <TextField fx:id="txtGlossary" layoutX="147.0" layoutY="141.0" prefHeight="23.0" prefWidth="386.0" />
-                           </children>
-                        </AnchorPane>
-                     </center>
                      <bottom>
-                        <HBox alignment="CENTER" prefHeight="33.0" prefWidth="600.0" spacing="30.0" BorderPane.alignment="CENTER">
+                        <HBox alignment="TOP_CENTER" prefHeight="40.0" prefWidth="600.0" spacing="30.0" BorderPane.alignment="CENTER">
                            <children>
                               <Button fx:id="btnSaveSettings" mnemonicParsing="false" onAction="#clickBtnSaveSettings" styleClass="btn" text="Save" />
                            </children>
-                           <padding>
-                              <Insets bottom="10.0" />
-                           </padding>
                         </HBox>
                      </bottom>
+                     <top>
+                        <AnchorPane prefHeight="188.0" prefWidth="600.0" BorderPane.alignment="CENTER">
+                           <children>
+                              <Label fx:id="lblJsonPath" layoutX="24.0" layoutY="150.0" styleClass="lbl" text="Json Path">
+                                 <font>
+                                    <Font size="18.0" />
+                                 </font>
+                              </Label>
+                              <TextField fx:id="txtJsonPath" layoutX="100.0" layoutY="148.0" prefHeight="23.0" prefWidth="430.0" />
+                              <Button fx:id="btnSearchJson" layoutX="539.0" layoutY="148.0" mnemonicParsing="false" onAction="#clickBtnSearchJson" text="..." />
+                              <Label fx:id="lblProject" layoutX="24.0" layoutY="181.0" styleClass="lbl" text="Project">
+                                 <font>
+                                    <Font size="18.0" />
+                                 </font>
+                              </Label>
+                              <TextField fx:id="txtProject" layoutX="100.0" layoutY="178.0" prefHeight="23.0" prefWidth="430.0" />
+                              <Label fx:id="lblModel" layoutX="24.0" layoutY="210.0" styleClass="lbl" text="Model">
+                                 <font>
+                                    <Font size="18.0" />
+                                 </font>
+                              </Label>
+                              <TextField fx:id="txtModel" layoutX="100.0" layoutY="207.0" prefHeight="23.0" prefWidth="430.0" />
+                              <Label fx:id="lblLocation" layoutX="24.0" layoutY="239.0" styleClass="lbl" text="Location">
+                                 <font>
+                                    <Font size="18.0" />
+                                 </font>
+                              </Label>
+                              <TextField fx:id="txtLocation" layoutX="100.0" layoutY="236.0" prefHeight="23.0" prefWidth="430.0" />
+                              <Label fx:id="lblGlossary" layoutX="24.0" layoutY="268.0" styleClass="lbl" text="Glopssary">
+                                 <font>
+                                    <Font size="18.0" />
+                                 </font>
+                              </Label>
+                              <TextField fx:id="txtGlossary" layoutX="100.0" layoutY="265.0" prefHeight="23.0" prefWidth="430.0" />
+                              <TextField fx:id="txtApiKey" layoutX="100.0" layoutY="59.0" prefHeight="23.0" prefWidth="430.0" />
+                              <Label fx:id="lblApiKey" layoutX="24.0" layoutY="59.0" styleClass="lbl" text="Api Key">
+                                 <font>
+                                    <Font size="18.0" />
+                                 </font>
+                              </Label>
+                              <Label fx:id="lblApiKey1" layoutX="20.0" layoutY="6.0" styleClass="title" text="-------------------------------------------V2 Settings-------------------------------------------">
+                                 <font>
+                                    <Font name="System Bold" size="18.0" />
+                                 </font>
+                              </Label>
+                              <Label fx:id="lblApiKey11" layoutX="20.0" layoutY="109.0" styleClass="title" text="-------------------------------------------V3 Settings-------------------------------------------">
+                                 <font>
+                                    <Font name="System Bold" size="18.0" />
+                                 </font>
+                              </Label>
+                              <CheckBox fx:id="chkModel" layoutX="545.0" layoutY="210.0" mnemonicParsing="false" />
+                              <CheckBox fx:id="chkGlossary" layoutX="545.0" layoutY="268.0" mnemonicParsing="false" />
+                           </children>
+                        </AnchorPane>
+                     </top>
                   </BorderPane>
                </content>
             </Tab>

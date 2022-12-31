@@ -1,15 +1,29 @@
 package me.oxstone.googlenmtapplier.controller;
 
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Bounds;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.*;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import javafx.stage.Window;
 import lombok.RequiredArgsConstructor;
 import me.oxstone.googlenmtapplier.JavaFxApplication;
@@ -21,6 +35,7 @@ import me.oxstone.googlenmtapplier.nmtsettings.GoogleV2Settings;
 import me.oxstone.googlenmtapplier.nmtsettings.GoogleV3Settings;
 import me.oxstone.googlenmtapplier.nmtsettings.NmtSettings;
 import me.oxstone.googlenmtapplier.repository.LanguageRepository;
+import net.rgielen.fxweaver.core.FxWeaver;
 import net.rgielen.fxweaver.core.FxmlView;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.EventType;
@@ -37,10 +52,8 @@ import org.dom4j.*;
 import org.dom4j.io.SAXReader;
 import org.dom4j.tree.DefaultElement;
 import org.springframework.stereotype.Controller;
-import org.xml.sax.SAXException;
 
 import javax.annotation.Nonnull;
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -48,9 +61,6 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
-
-import static net.sf.okapi.common.LocaleId.ENGLISH;
-import static net.sf.okapi.common.LocaleId.KOREAN;
 
 @Controller
 @RequiredArgsConstructor
@@ -135,6 +145,9 @@ public class MainFxController implements Initializable {
     private ComboBox<String> cboFileFilter;
 
     @FXML
+    private Button btnOpenFile;
+
+    @FXML
     private ListView<String> lstFiles = new ListView<>();
 
     private NmtSettings nmtSettings;
@@ -145,9 +158,10 @@ public class MainFxController implements Initializable {
 
     private String docSourceLanguage;
     private String docTargetLanguage;
-
     @Nonnull
     final LanguageRepository languageRepository;
+    @Nonnull
+    FxWeaver fxWeaver;
 
     private enum FLAG {
         SOURCE, TARGET
@@ -675,6 +689,143 @@ public class MainFxController implements Initializable {
         }
     }
 
+    void openFileEditor(String filePath) throws DocumentException {
+        File sourceFile = new File(filePath);
+
+        // 문서구조(TextUnits) 추출
+        List<Event> allFilterEvents = getAllEventsFromFilter(sourceFile);
+        List<ITextUnit> textUnits = getTextUnits(allFilterEvents);
+
+        Map<String, String> sourceSegments = getSegmentMap(textUnits, FLAG.SOURCE);
+        Map<String, String> targetSegments = getSegmentMap(textUnits, FLAG.TARGET);
+
+        Parent root = fxWeaver.loadView(FileEditorController.class);
+        javafx.scene.Node scrollPane = ((BorderPane) root).getCenter();
+        javafx.scene.Node pageVBox = ((ScrollPane) scrollPane).getContent();
+        ObservableList<javafx.scene.Node> children = ((VBox) pageVBox).getChildren();
+
+        Comparator<String> keyComparator = ((key1, key2) -> {
+            String tmpKey1;
+            String tmpKey2;
+
+            if (key1.contains("_")) {
+                tmpKey1 = key1.substring(0, key1.indexOf("_"));
+            } else {
+                tmpKey1 = key1;
+            }
+
+            if (key2.contains("_")) {
+                tmpKey2 = key2.substring(0, key2.indexOf("_"));
+            } else {
+                tmpKey2 = key2;
+            }
+
+            if (tmpKey1.length() < tmpKey2.length()) {
+                return -1;
+            } else if (tmpKey1.length() == tmpKey2.length()) {
+                return Integer.compare(Integer.parseInt(tmpKey1), Integer.parseInt(tmpKey2));
+            } else {
+                return 1;
+            }
+        });
+
+        List<String> sortedKeyList = sourceSegments.keySet().stream().sorted(keyComparator).collect(Collectors.toList());
+        for (String key : sortedKeyList) {
+            children.add(createNewSegment(key, sourceSegments.get(key), targetSegments.get(key)));
+        }
+
+        Scene scene = new Scene(root);
+        scene.getStylesheets().add(getClass().getResource("Stylesheet.css").toExternalForm());
+        Stage stage = new Stage();
+        stage.setScene(scene);
+        stage.setTitle("File Editor");
+        stage.setResizable(true);
+        stage.show();
+    }
+
+    private javafx.scene.Node createNewSegment(String key, String source, String target) {
+        HBox segmentBox = new HBox();
+        segmentBox.setAlignment(Pos.CENTER);
+        HBox.setMargin(segmentBox, new Insets(10));
+        segmentBox.setMinWidth(Region.USE_COMPUTED_SIZE);
+        segmentBox.setMinHeight(Region.USE_COMPUTED_SIZE);
+        segmentBox.setPrefWidth(Region.USE_COMPUTED_SIZE);
+        segmentBox.prefHeight(Region.USE_COMPUTED_SIZE);
+        segmentBox.setMaxWidth(Region.USE_COMPUTED_SIZE);
+        segmentBox.setMaxHeight(Region.USE_COMPUTED_SIZE);
+        segmentBox.setSpacing(10);
+
+        Label lblSource = createNewLabel("lblSource" + key);
+        lblSource.setText(key.replace("_x0020_","|"));
+
+        TextArea txtSource = createNewTextArea("txtSource" + key);
+        txtSource.textProperty().addListener((observable, oldValue, newValue) -> {
+            arrangeTextAreaHeight(txtSource, newValue);
+        });
+        txtSource.setText(source);
+        arrangeTextAreaHeight(txtSource, source);
+        txtSource.setEditable(false);
+
+        Label lblTarget = createNewLabel("lblTarget" + key);
+        lblTarget.setText(key.replace("_x0020_","|"));
+
+        TextArea txtTarget = createNewTextArea("txtTarget" + key);
+        txtTarget.textProperty().addListener((observable, oldValue, newValue) -> {
+            arrangeTextAreaHeight(txtTarget, newValue);
+        });
+        txtTarget.setText(target);
+        arrangeTextAreaHeight(txtTarget, target);
+        // 저장기능 생기면 삭제
+//        txtTarget.setEditable(false);
+
+        segmentBox.getChildren().addAll(lblSource, txtSource, lblTarget, txtTarget);
+
+        return segmentBox;
+    }
+
+    void arrangeTextAreaHeight(TextArea txtArea, String text) {
+        Text textObject = new Text();
+        textObject.setText(text);
+        textObject.setFont(txtArea.getFont());
+        textObject.setWrappingWidth(txtArea.widthProperty().getValue() * 0.97);
+        txtArea.setPrefHeight(textObject.getLayoutBounds().getHeight() + txtArea.getFont().getSize());
+    }
+
+    private TextArea createNewTextArea(String id) {
+        TextArea textArea = new TextArea();
+        textArea.setFont(new Font(18));
+        textArea.setWrapText(true);
+        textArea.setMinWidth(Region.USE_COMPUTED_SIZE);
+        textArea.setMaxHeight(Region.USE_COMPUTED_SIZE);
+        textArea.setPrefHeight(textArea.getFont().getSize());
+        textArea.setPrefWidth(550);
+        textArea.setMaxWidth(Region.USE_COMPUTED_SIZE);
+        textArea.setMaxHeight(Region.USE_COMPUTED_SIZE);
+        textArea.setId(id);
+
+        return textArea;
+    }
+
+    private Label createNewLabel(String key) {
+        Label label = new Label();
+        label.setFont(new Font(18));
+        label.setMinWidth(Region.USE_COMPUTED_SIZE);
+        label.setMinHeight(Region.USE_COMPUTED_SIZE);
+        label.setPrefWidth(70);
+        label.setPrefHeight(Region.USE_COMPUTED_SIZE);
+        label.setMaxWidth(Region.USE_COMPUTED_SIZE);
+        label.setMaxHeight(Region.USE_COMPUTED_SIZE);
+        label.setId(key);
+        return label;
+    }
+
+    @FXML
+    void clickLstFiles(MouseEvent event) throws DocumentException {
+        if (event.getClickCount() > 1) {
+            openFileEditor(lstFiles.getSelectionModel().getSelectedItem());
+        }
+    }
+
     /*
      * 드래그앤 드랍 이벤트
      * 드래그한 파일 목록을 File ListView에 추가합니다.
@@ -862,7 +1013,7 @@ public class MainFxController implements Initializable {
     }
 
     @FXML
-    void changeLstFiles(ActionEvent event) {
-
+    void clickBtnOpenFile(ActionEvent event) throws DocumentException {
+        openFileEditor(lstFiles.getSelectionModel().getSelectedItem());
     }
 }

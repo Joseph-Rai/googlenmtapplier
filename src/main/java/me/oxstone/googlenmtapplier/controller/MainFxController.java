@@ -1,15 +1,12 @@
 package me.oxstone.googlenmtapplier.controller;
 
 import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
@@ -48,7 +45,10 @@ import net.sf.okapi.common.resource.Segment;
 import net.sf.okapi.common.skeleton.GenericSkeleton;
 import net.sf.okapi.common.skeleton.GenericSkeletonPart;
 import net.sf.okapi.filters.xliff.XLIFFFilter;
-import org.dom4j.*;
+import org.dom4j.Attribute;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
 import org.dom4j.tree.DefaultElement;
 import org.springframework.stereotype.Controller;

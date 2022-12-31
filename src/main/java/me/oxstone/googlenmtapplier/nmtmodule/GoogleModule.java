@@ -1,20 +1,11 @@
 package me.oxstone.googlenmtapplier.nmtmodule;
 
-import com.google.api.gax.core.FixedCredentialsProvider;
-import com.google.auth.Credentials;
-import com.google.auth.oauth2.GoogleCredentials;
-import com.google.cloud.translate.v3.TranslateTextResponse;
-import com.google.cloud.translate.v3.TranslationServiceClient;
-import com.google.cloud.translate.v3.TranslationServiceSettings;
-import com.google.common.collect.Lists;
 import me.oxstone.googlenmtapplier.nmtsettings.NmtSettings;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class GoogleModule implements NmtModule {
 

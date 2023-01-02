@@ -156,10 +156,10 @@ public class MainFxController implements Initializable {
 
     private String docSourceLanguage;
     private String docTargetLanguage;
-    @Nonnull
-    final LanguageRepository languageRepository;
-    @Nonnull
-    FxWeaver fxWeaver;
+
+    private final LanguageRepository languageRepository;
+
+    private final FxWeaver fxWeaver;
 
     private enum FLAG {
         SOURCE, TARGET

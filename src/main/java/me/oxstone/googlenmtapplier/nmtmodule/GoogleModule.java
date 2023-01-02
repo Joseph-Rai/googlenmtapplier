@@ -7,13 +7,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class GoogleModule implements NmtModule {
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
+public abstract class GoogleModule implements NmtModule {
 
     protected final NmtSettings nmtSettings;
-
-    public GoogleModule(NmtSettings nmtSettings) throws IOException {
-        this.nmtSettings = nmtSettings;
-    }
 
     /*
      * Segment Id + Target Text 조합의 Map 형성
@@ -26,15 +25,5 @@ public class GoogleModule implements NmtModule {
             result.put(entry.getKey(), translatedTexts.get(i++));
         }
         return result;
-    }
-
-    @Override
-    public Map<String, String> batchTranslateText(Map<String, String> segmentMap) {
-        return null;
-    }
-
-    @Override
-    public String translateText(String text) {
-        return null;
     }
 }

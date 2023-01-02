@@ -12,11 +12,11 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class GoogleV2 extends GoogleModule {
-    private Translate translate;
+    private Translate translateService;
 
     public GoogleV2(NmtSettings nmtSettings) throws IOException {
         super(nmtSettings);
-        translate = getDefaultService();
+        translateService = getDefaultService();
     }
 
     private Translate getDefaultService() {
@@ -28,7 +28,7 @@ public class GoogleV2 extends GoogleModule {
 
     @Override
     public Map<String, String> batchTranslateText(Map<String, String> segmentMap) {
-        List<Translation> translationList = translate.translate(new ArrayList<>(segmentMap.values()));
+        List<Translation> translationList = translateService.translate(new ArrayList<>(segmentMap.values()));
         List<String> translatedTexts = translationList.stream()
                 .map(Translation::getTranslatedText)
                 .collect(Collectors.toList());
@@ -37,6 +37,6 @@ public class GoogleV2 extends GoogleModule {
 
     @Override
     public String translateText(String text) {
-        return translate.translate(text).getTranslatedText();
+        return translateService.translate(text).getTranslatedText();
     }
 }

@@ -391,12 +391,7 @@ public class MainFxController implements Initializable {
      */
     private void applyTranslatedTextToTextUnit(List<ITextUnit> textUnits, Map<String, String> targetSegmentMap) {
         for (ITextUnit tu : textUnits) {
-            LocaleId targetLocaleId;
-            if (optFromSource.selectedProperty().getValue()) {
-                targetLocaleId = LocaleId.fromString(docSourceLanguage);
-            } else {
-                targetLocaleId = LocaleId.fromString(docTargetLanguage);
-            }
+            LocaleId targetLocaleId = LocaleId.fromString(docTargetLanguage);
 
             List<Segment> segments = tu.getTargetSegments(targetLocaleId).asList();
             for (Segment segment : segments) {

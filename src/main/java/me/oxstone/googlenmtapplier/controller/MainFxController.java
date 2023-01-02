@@ -67,8 +67,7 @@ import java.util.stream.Collectors;
 @FxmlView("MainFx.fxml")
 public class MainFxController implements Initializable {
 
-    private static final String DESKTOP_PATH =
-            System.getProperty("user.home") + "\\Desktop";
+    private static final String DESKTOP_PATH = System.getProperty("user.home") + "\\Desktop";
     private static final String SOURCE_PATH = "source_path";
     private static final String JSON = "json_path";
     private static final String PROJECT = "project_id";
@@ -87,8 +86,7 @@ public class MainFxController implements Initializable {
     private static final String SAVED_SOURCE_LANGUAGE = "saved_source_language";
     private static final String SAVED_TARGET_LANGUAGE = "saved_target_language";
 
-    private static final Preferences preference =
-            Preferences.userNodeForPackage(MainFxController.class);
+    private static final Preferences preference = Preferences.userNodeForPackage(MainFxController.class);
 
     @FXML
     private TextField txtJsonPath;
@@ -179,13 +177,11 @@ public class MainFxController implements Initializable {
         // 번역모듈 목록 초기화
         cboNmtModule.getItems().addAll(
                 "Google Translation V2",
-                "Google Translation V3"
-        );
+                "Google Translation V3");
         cboNmtModule.getSelectionModel().select("Google Translation V3");
 
         cboFileFilter.getItems().addAll(
-                "SDL Xliff"
-        );
+                "SDL Xliff");
         cboFileFilter.getSelectionModel().select("SDL Xliff");
 
         // Home 세팅값 불러오기
@@ -195,8 +191,10 @@ public class MainFxController implements Initializable {
         cboTargetLang.getSelectionModel().select(preference.get(SAVED_TARGET_LANGUAGE, "English"));
         optFromSource.selectedProperty().set(Boolean.parseBoolean(preference.get(TRANSLATION_FROM_SOURCE, "true")));
         optFromTarget.selectedProperty().set(Boolean.parseBoolean(preference.get(TRANSLATION_FROM_TARGET, "false")));
-        optTranslatedTextOnly.selectedProperty().set(Boolean.parseBoolean(preference.get(TARGET_FORMAT_TRANSLATION_TEXT_ONLY, "true")));
-        optTargetAndTranslatedText.selectedProperty().set(Boolean.parseBoolean(preference.get(TARGET_FORMAT_TARGET_AND_TRANSLATION_TEXT, "false")));
+        optTranslatedTextOnly.selectedProperty()
+                .set(Boolean.parseBoolean(preference.get(TARGET_FORMAT_TRANSLATION_TEXT_ONLY, "true")));
+        optTargetAndTranslatedText.selectedProperty()
+                .set(Boolean.parseBoolean(preference.get(TARGET_FORMAT_TARGET_AND_TRANSLATION_TEXT, "false")));
 
         // 소스언어, 타겟언어 목록 초기화
         initComboBoxItems(cboSourceLang);
@@ -206,7 +204,7 @@ public class MainFxController implements Initializable {
 
         TargetTextFormatOptionDisable();
 
-        //Google Settings Preference 값 불러오기
+        // Google Settings Preference 값 불러오기
         txtApiKey.setText(preference.get(APIKEY, ""));
         txtJsonPath.setText(preference.get(JSON, ""));
         txtProject.setText(preference.get(PROJECT, "34036614342"));
@@ -234,8 +232,7 @@ public class MainFxController implements Initializable {
                 languageRepository.findAll().stream()
                         .filter(language -> language.getGlossary())
                         .map(lang -> lang.getName())
-                        .collect(Collectors.toList())
-        );
+                        .collect(Collectors.toList()));
     }
 
     private ObservableList<String> getNameFilteredObservableLanguages(String text) {
@@ -246,9 +243,8 @@ public class MainFxController implements Initializable {
     private ObservableList<String> getAllObservableLanguages() {
         return FXCollections.observableArrayList(
                 languageRepository.findAll().stream()
-                .map(lang -> lang.getName())
-                .collect(Collectors.toList())
-        );
+                        .map(lang -> lang.getName())
+                        .collect(Collectors.toList()));
     }
 
     /*
@@ -273,8 +269,10 @@ public class MainFxController implements Initializable {
         preference.put(SAVED_TARGET_LANGUAGE, cboTargetLang.getSelectionModel().getSelectedItem());
         preference.put(TRANSLATION_FROM_SOURCE, String.valueOf(optFromSource.selectedProperty().getValue()));
         preference.put(TRANSLATION_FROM_TARGET, String.valueOf(optFromTarget.selectedProperty().getValue()));
-        preference.put(TARGET_FORMAT_TRANSLATION_TEXT_ONLY, String.valueOf(optTranslatedTextOnly.selectedProperty().getValue()));
-        preference.put(TARGET_FORMAT_TARGET_AND_TRANSLATION_TEXT, String.valueOf(optTargetAndTranslatedText.selectedProperty().getValue()));
+        preference.put(TARGET_FORMAT_TRANSLATION_TEXT_ONLY,
+                String.valueOf(optTranslatedTextOnly.selectedProperty().getValue()));
+        preference.put(TARGET_FORMAT_TARGET_AND_TRANSLATION_TEXT,
+                String.valueOf(optTargetAndTranslatedText.selectedProperty().getValue()));
 
         // cboMntModule 값에 따라 Settings, MntModule 설정
         switch (cboNmtModule.getValue()) {
@@ -282,13 +280,13 @@ public class MainFxController implements Initializable {
                 nmtSettings = new GoogleV2Settings();
                 prepareSettings();
                 nmtModule = new GoogleV2(nmtSettings);
-                //세팅창 조정로직 추가
+                // 세팅창 조정로직 추가
                 break;
             case "Google Translation V3":
                 nmtSettings = new GoogleV3Settings();
                 prepareSettings();
                 nmtModule = new GoogleV3(nmtSettings);
-                //세팅창 조정로직 추가
+                // 세팅창 조정로직 추가
                 break;
         }
 
@@ -363,11 +361,13 @@ public class MainFxController implements Initializable {
 
     /**
      * 번역결과를 TextUnits에 적용합니다.
-     * @param textUnits         : sdlxliff 구조체
-     * @param targetSegmentMap  : 번역결과를 TextUnis에 적용시키기 위해 필요한 정보 추출용
-     * @param batchSegmentMap   : 번역결과 Map
+     * 
+     * @param textUnits        : sdlxliff 구조체
+     * @param targetSegmentMap : 번역결과를 TextUnis에 적용시키기 위해 필요한 정보 추출용
+     * @param batchSegmentMap  : 번역결과 Map
      */
-    private void applyTranslateResultToTextUnits(List<ITextUnit> textUnits, Map<String, String> targetSegmentMap, Map<String, String> batchSegmentMap) {
+    private void applyTranslateResultToTextUnits(List<ITextUnit> textUnits, Map<String, String> targetSegmentMap,
+            Map<String, String> batchSegmentMap) {
         replaceToTranslatedText(targetSegmentMap, batchSegmentMap);
         applyTranslatedTextToTextUnit(textUnits, targetSegmentMap);
     }
@@ -729,7 +729,8 @@ public class MainFxController implements Initializable {
             }
         });
 
-        List<String> sortedKeyList = sourceSegments.keySet().stream().sorted(keyComparator).collect(Collectors.toList());
+        List<String> sortedKeyList = sourceSegments.keySet().stream().sorted(keyComparator)
+                .collect(Collectors.toList());
         for (String key : sortedKeyList) {
             children.add(createNewSegment(key, sourceSegments.get(key), targetSegments.get(key)));
         }
@@ -756,7 +757,7 @@ public class MainFxController implements Initializable {
         segmentBox.setSpacing(10);
 
         Label lblSource = createNewLabel("lblSource" + key);
-        lblSource.setText(key.replace("_x0020_","|"));
+        lblSource.setText(key.replace("_x0020_", "|"));
 
         TextArea txtSource = createNewTextArea("txtSource" + key);
         txtSource.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -767,7 +768,7 @@ public class MainFxController implements Initializable {
         txtSource.setEditable(false);
 
         Label lblTarget = createNewLabel("lblTarget" + key);
-        lblTarget.setText(key.replace("_x0020_","|"));
+        lblTarget.setText(key.replace("_x0020_", "|"));
 
         TextArea txtTarget = createNewTextArea("txtTarget" + key);
         txtTarget.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -776,7 +777,7 @@ public class MainFxController implements Initializable {
         txtTarget.setText(target);
         arrangeTextAreaHeight(txtTarget, target);
         // 저장기능 생기면 삭제
-//        txtTarget.setEditable(false);
+        // txtTarget.setEditable(false);
 
         segmentBox.getChildren().addAll(lblSource, txtSource, lblTarget, txtTarget);
 
@@ -801,6 +802,7 @@ public class MainFxController implements Initializable {
         textArea.setPrefWidth(550);
         textArea.setMaxWidth(Region.USE_COMPUTED_SIZE);
         textArea.setMaxHeight(Region.USE_COMPUTED_SIZE);
+        textArea.setStyle("btn");
         textArea.setId(id);
 
         return textArea;
@@ -815,6 +817,7 @@ public class MainFxController implements Initializable {
         label.setPrefHeight(Region.USE_COMPUTED_SIZE);
         label.setMaxWidth(Region.USE_COMPUTED_SIZE);
         label.setMaxHeight(Region.USE_COMPUTED_SIZE);
+        label.setStyle("lbl");
         label.setId(key);
         return label;
     }
@@ -926,7 +929,7 @@ public class MainFxController implements Initializable {
     }
 
     /**
-     *  cboSourceLang으로 넘어온 KeyEvent를 처리합니다.
+     * cboSourceLang으로 넘어온 KeyEvent를 처리합니다.
      */
     @FXML
     void typeCboSourceLang(KeyEvent event) {
@@ -934,7 +937,7 @@ public class MainFxController implements Initializable {
     }
 
     /**
-     *  cboTargetLang으로 넘어온 KeyEvent를 처리합니다.
+     * cboTargetLang으로 넘어온 KeyEvent를 처리합니다.
      */
     @FXML
     void typeCboTargetLang(KeyEvent event) {
@@ -942,9 +945,10 @@ public class MainFxController implements Initializable {
     }
 
     /**
-     * ComboBox를  넘어온 KeyEvent를 처리합니다.
-     * @param comboBox  : 이벤트 대상 ComboBox
-     * @param event     : KeyEvent
+     * ComboBox를 넘어온 KeyEvent를 처리합니다.
+     * 
+     * @param comboBox : 이벤트 대상 ComboBox
+     * @param event    : KeyEvent
      */
     void comboBoxKeyEventHandler(ComboBox<String> comboBox, KeyEvent event) {
         if (System.currentTimeMillis() - lastTypedTime > 1000) {
@@ -960,8 +964,6 @@ public class MainFxController implements Initializable {
         }
         lastTypedTime = System.currentTimeMillis();
     }
-
-
 
     void initComboBoxItems(ComboBox<String> comboBox) {
         String tmpLang = comboBox.getValue();

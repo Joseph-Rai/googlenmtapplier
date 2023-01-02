@@ -55,7 +55,7 @@
                               <Button fx:id="btnAdd" layoutX="484.0" layoutY="14.0" mnemonicParsing="false" onAction="#clickBtnAdd" prefHeight="23.0" prefWidth="39.0" text="+" />
                               <ListView fx:id="lstFiles" layoutX="24.0" layoutY="44.0" onDragDropped="#dragDroppedOnListFiles" onDragEntered="#dragEnteredOnListFiles" onDragExited="#dragExitedOnListFiles" onDragOver="#dragOverOnListFiles" onMouseClicked="#clickLstFiles" prefHeight="133.0" prefWidth="546.0" />
                               <Button fx:id="btnDelete" layoutX="531.0" layoutY="14.0" mnemonicParsing="false" onAction="#clickBtnDelete" prefHeight="23.0" prefWidth="39.0" text="-" />
-                              <Button fx:id="btnOpenFile" layoutX="428.0" layoutY="14.0" mnemonicParsing="false" onAction="#clickBtnOpenFile" prefHeight="23.0" prefWidth="47.0" text="Open" />
+                              <Button fx:id="btnOpenFile" layoutX="428.0" layoutY="14.0" mnemonicParsing="false" onAction="#clickBtnOpenFile" prefHeight="23.0" prefWidth="50.0" text="Open" />
                            </children>
                            <opaqueInsets>
                               <Insets />
@@ -202,12 +202,12 @@
                                     <Font size="18.0" />
                                  </font>
                               </Label>
-                              <Label fx:id="lblApiKey1" layoutX="20.0" layoutY="6.0" styleClass="title" text="-------------------------------------------V2 Settings-------------------------------------------">
+                              <Label fx:id="lblApiKey1" layoutX="20.0" layoutY="6.0" styleClass="title" text="▣▣ V2 Settings">
                                  <font>
                                     <Font name="System Bold" size="18.0" />
                                  </font>
                               </Label>
-                              <Label fx:id="lblApiKey11" layoutX="20.0" layoutY="109.0" styleClass="title" text="-------------------------------------------V3 Settings-------------------------------------------">
+                              <Label fx:id="lblApiKey11" layoutX="20.0" layoutY="109.0" styleClass="title" text="▣▣ V3 Settings">
                                  <font>
                                     <Font name="System Bold" size="18.0" />
                                  </font>

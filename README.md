@@ -24,7 +24,7 @@
 5. Basically, it tries to machine translation **based on the source text**. However, depending on the setting value, machine translation may be performed **based on the text already filled in the target**.
 6. When you translate based on the text already filled in the target, you can select whether to apply **only the translated text** or to show the **target text and the translated text together**.
 ![NMT Home Settings_2](https://github.com/Joseph-Rai/googlenmtapplier/blob/master/src/main/resources/images/Home%20Settings_2.jpg?raw=true)
-7. Now, *drag-and-drop* the file you want to translate and add it to the file list.
+7. Now, *drag-and-drop* the file you want to translate and add it to the file list. If you click the **Open Button**, you can see the current segment status of the file. It is useful to check the condition after applying machine translation.
 ![File List](https://github.com/Joseph-Rai/googlenmtapplier/blob/master/src/main/resources/images/Home_File_List.jpg?raw=true)
 8. Clicking the **Apply NMT button** applies the machine translation result to the added file and saves it.
 ![Apply NMT Button](https://github.com/Joseph-Rai/googlenmtapplier/blob/master/src/main/resources/images/Home_ApplyNMT_Button.jpg?raw=true)

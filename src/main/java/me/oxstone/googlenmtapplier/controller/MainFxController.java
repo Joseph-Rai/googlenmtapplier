@@ -226,11 +226,11 @@ public class MainFxController implements Initializable {
             }
         });
 
-        chkModel.selectedProperty().addListener(change -> {
+        txtModel.textProperty().addListener(change -> {
             chkModel.selectedProperty().set(!txtModel.getText().isEmpty());
         });
 
-        chkGlossary.selectedProperty().addListener(change -> {
+        txtGlossary.textProperty().addListener(change -> {
             chkGlossary.selectedProperty().set(!txtGlossary.getText().isEmpty());
         });
     }

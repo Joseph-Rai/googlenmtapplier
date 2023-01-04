@@ -205,12 +205,12 @@ public class MainFxController implements Initializable {
         TargetTextFormatOptionDisable();
 
         // Google Settings Preference 값 불러오기
-        txtApiKey.setText(preference.get(APIKEY, ""));
-        txtJsonPath.setText(preference.get(JSON, ""));
-        txtProject.setText(preference.get(PROJECT, "34036614342"));
-        txtLocation.setText(preference.get(LOCATION, "us-central1"));
-        txtModel.setText(preference.get(MODEL, "TRL6331012141990019072"));
-        txtGlossary.setText(preference.get(GLOSSARY, "ko_en_glossary_20211229"));
+        txtApiKey.setText(preference.get(APIKEY, "Google Translation V2 API Key"));
+        txtJsonPath.setText(preference.get(JSON, "Json Key Path"));
+        txtProject.setText(preference.get(PROJECT, "Your Project ID"));
+        txtLocation.setText(preference.get(LOCATION, "The Location of Your Project"));
+        txtModel.setText(preference.get(MODEL, "Your Model ID"));
+        txtGlossary.setText(preference.get(GLOSSARY, "Glossary ID"));
         chkModel.selectedProperty().set(Boolean.parseBoolean(preference.get(APPLY_MODEL, "false")));
         chkGlossary.selectedProperty().set(Boolean.parseBoolean(preference.get(APPLY_GLOSSARY, "false")));
 
@@ -224,6 +224,14 @@ public class MainFxController implements Initializable {
             if (size > 0) {
                 lstFiles.getSelectionModel().select(size - 1);
             }
+        });
+
+        chkModel.selectedProperty().addListener(change -> {
+            chkModel.selectedProperty().set(!txtModel.getText().isEmpty());
+        });
+
+        chkGlossary.selectedProperty().addListener(change -> {
+            chkGlossary.selectedProperty().set(!txtGlossary.getText().isEmpty());
         });
     }
 

@@ -378,10 +378,10 @@ public class MainFxController implements Initializable {
     private void replaceToTranslatedText(Map<String, String> targetSegmentMap, Map<String, String> batchSegmentMap) {
         for (Entry<String, String> entry : targetSegmentMap.entrySet()) {
             String key = entry.getKey();
-            if (!optTranslatedTextOnly.isDisabled() && optTranslatedTextOnly.selectedProperty().getValue()) {
-                targetSegmentMap.put(key, batchSegmentMap.get(key));
-            } else {
+            if ((!optTranslatedTextOnly.isDisabled()) && optTranslatedTextOnly.selectedProperty().getValue()) {
                 targetSegmentMap.put(key, targetSegmentMap.get(key) + "\n" + batchSegmentMap.get(key));
+            } else {
+                targetSegmentMap.put(key, batchSegmentMap.get(key));
             }
         }
     }

@@ -10,7 +10,7 @@
 
 <BorderPane maxHeight="400.0" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="me.oxstone.googlenmtapplier.controller.FileEditorController">
    <top>
-      <MenuBar BorderPane.alignment="CENTER">
+      <MenuBar styleClass="btn" BorderPane.alignment="CENTER">
         <menus>
           <Menu mnemonicParsing="false" text="File">
             <items>

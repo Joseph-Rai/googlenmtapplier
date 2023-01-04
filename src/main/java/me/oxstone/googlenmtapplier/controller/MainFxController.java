@@ -805,7 +805,7 @@ public class MainFxController implements Initializable {
         textArea.setPrefWidth(550);
         textArea.setMaxWidth(Region.USE_COMPUTED_SIZE);
         textArea.setMaxHeight(Region.USE_COMPUTED_SIZE);
-        textArea.setStyle("btn");
+        textArea.getStyleClass().setAll("btn");
         textArea.setId(id);
 
         return textArea;
@@ -820,7 +820,7 @@ public class MainFxController implements Initializable {
         label.setPrefHeight(Region.USE_COMPUTED_SIZE);
         label.setMaxWidth(Region.USE_COMPUTED_SIZE);
         label.setMaxHeight(Region.USE_COMPUTED_SIZE);
-        label.setStyle("lbl");
+        label.getStyleClass().setAll("btn");
         label.setId(key);
         return label;
     }

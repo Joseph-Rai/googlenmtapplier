@@ -387,9 +387,9 @@ public class MainFxController implements Initializable {
         for (Entry<String, String> entry : targetSegmentMap.entrySet()) {
             String key = entry.getKey();
             if ((!optTranslatedTextOnly.isDisabled()) && optTranslatedTextOnly.selectedProperty().getValue()) {
-                targetSegmentMap.put(key, targetSegmentMap.get(key) + "\n" + batchSegmentMap.get(key));
-            } else {
                 targetSegmentMap.put(key, batchSegmentMap.get(key));
+            } else {
+                targetSegmentMap.put(key, targetSegmentMap.get(key) + "\n" + batchSegmentMap.get(key));
             }
         }
     }

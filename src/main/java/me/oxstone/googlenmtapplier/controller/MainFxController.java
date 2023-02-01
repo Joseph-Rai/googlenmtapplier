@@ -532,10 +532,19 @@ public class MainFxController implements Initializable {
             }
             for (int i = 0; i < segments.size(); i++) {
                 Segment segment = segments.get(i);
-                if (segment.getId().compareTo("0") > 0) {
-                    if (!(flag == FLAG.SOURCE && segment.text.getText().isEmpty()))
-                        segmentMap.put(segment.getId(), segment.text.getText());
+                // segment id가 0보다 크지 않으면
+                if (segment.getId().compareTo("0") <= 0) {
+                    continue;
                 }
+                // 소스이면서, 빈 문자열이면
+                if (flag == FLAG.SOURCE && segment.text.getText().isEmpty()) {
+                    continue;
+                }
+                // 세그먼트가 잠겨있으면
+                if (isLockedSegment(tu, segment.getId())) {
+                    continue;
+                }
+                segmentMap.put(segment.getId(), segment.text.getText());
             }
         }
         return segmentMap;

@@ -28,10 +28,15 @@ public class GoogleV2 extends GoogleModule {
 
     @Override
     public Map<String, String> batchTranslateText(Map<String, String> segmentMap) {
-        List<Translation> translationList = translateService.translate(new ArrayList<>(segmentMap.values()));
-        List<String> translatedTexts = translationList.stream()
-                .map(Translation::getTranslatedText)
-                .collect(Collectors.toList());
+        Map<Integer, Map<String, String>> splitMapBySize = splitMapBySize(segmentMap, 5000);
+        List<String> translatedTexts = new ArrayList<>();
+        for (int i = 0; i < splitMapBySize.size(); i++) {
+            translatedTexts.addAll(
+                    translateService.translate(new ArrayList<>(segmentMap.values())).stream()
+                            .map(Translation::getTranslatedText)
+                            .collect(Collectors.toList())
+            );
+        }
         return generateTargetMap(segmentMap, translatedTexts);
     }
 

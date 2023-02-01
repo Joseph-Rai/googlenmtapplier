@@ -8,9 +8,12 @@ import me.oxstone.googlenmtapplier.nmtsettings.NmtSettings;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class GoogleV3 extends GoogleModule {
@@ -111,12 +114,17 @@ public class GoogleV3 extends GoogleModule {
                     .build();
         }
 
-        request = request.toBuilder()
-                .addAllContents(segmentMap.values())
-                .build();
-
-        List<String> translatedTexts = extractTextList(client.translateText(request));
+        Map<Integer, Map<String, String>> splitMapBySize = splitMapBySize(segmentMap, 30000);
+        List<String> translatedTexts = new ArrayList<>();
+        for (int i = 0; i < splitMapBySize.size(); i++) {
+            request = request.toBuilder()
+                    .addAllContents(splitMapBySize.get(i).values())
+                    .build();
+            translatedTexts.addAll(extractTextList(client.translateText(request)));
+        }
 
         return generateTargetMap(segmentMap, translatedTexts);
     }
+
+
 }

@@ -26,4 +26,23 @@ public abstract class GoogleModule implements NmtModule {
         }
         return result;
     }
+
+    protected Map<Integer, Map<String, String>> splitMapBySize(Map<String, String> segmentMap, int sizeLimit) {
+        Map<Integer, Map<String, String>> splitedMap = new HashMap<>();
+        int stringLength = 0;
+        int mapId = 0;
+        for (Map.Entry<String, String> entry : segmentMap.entrySet()) {
+            stringLength += entry.getValue().length();
+            if (stringLength < sizeLimit) {
+                if (!(splitedMap.size() > mapId)) {
+                    splitedMap.put(mapId, new HashMap<>());
+                }
+                splitedMap.get(mapId).put(entry.getKey(), entry.getValue());
+            } else {
+                stringLength = 0;
+                mapId++;
+            }
+        }
+        return splitedMap;
+    }
 }

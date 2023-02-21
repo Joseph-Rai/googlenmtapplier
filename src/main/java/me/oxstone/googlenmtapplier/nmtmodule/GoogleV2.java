@@ -3,12 +3,14 @@ package me.oxstone.googlenmtapplier.nmtmodule;
 import com.google.cloud.translate.Translate;
 import com.google.cloud.translate.TranslateOptions;
 import com.google.cloud.translate.Translation;
+import com.google.cloud.translate.v3.TranslateTextRequest;
 import me.oxstone.googlenmtapplier.nmtsettings.NmtSettings;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public class GoogleV2 extends GoogleModule {
@@ -28,16 +30,33 @@ public class GoogleV2 extends GoogleModule {
 
     @Override
     public Map<String, String> batchTranslateText(Map<String, String> segmentMap) {
-        Map<Integer, Map<String, String>> splitMapBySize = splitMapBySize(segmentMap, 5000);
-        List<String> translatedTexts = new ArrayList<>();
-        for (int i = 0; i < splitMapBySize.size(); i++) {
-            translatedTexts.addAll(
-                    translateService.translate(new ArrayList<>(segmentMap.values())).stream()
-                            .map(Translation::getTranslatedText)
-                            .collect(Collectors.toList())
-            );
+        Map<Integer, Map<String, String>> splitMapBySize = splitMapBySize(segmentMap, 1024);
+        List<CompletableFuture<List<String>>> futures = new ArrayList<>();
+        for (Map<String, String> innerMap : splitMapBySize.values()) {
+            CompletableFuture<List<String>> future = getTranslatedTextFuture(innerMap, translateService);
+            futures.add(future);
         }
+
+        List<String> translatedTexts = new ArrayList<>();
+        for (CompletableFuture<List<String>> future : futures) {
+            List<String> result = null;
+            try {
+                result = future.get();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            translatedTexts.addAll(result);
+        }
+
         return generateTargetMap(segmentMap, translatedTexts);
+    }
+
+    private CompletableFuture<List<String>> getTranslatedTextFuture(Map<String, String> innerMap, Translate translateService) {
+        return CompletableFuture.supplyAsync(() -> {
+            return translateService.translate(new ArrayList<>(innerMap.values())).stream()
+                    .map(Translation::getTranslatedText)
+                    .collect(Collectors.toList());
+        });
     }
 
     @Override

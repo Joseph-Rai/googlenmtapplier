@@ -1,13 +1,11 @@
 package me.oxstone.googlenmtapplier.nmtmodule;
 
+import lombok.RequiredArgsConstructor;
 import me.oxstone.googlenmtapplier.nmtsettings.NmtSettings;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public abstract class GoogleModule implements NmtModule {
@@ -29,19 +27,19 @@ public abstract class GoogleModule implements NmtModule {
 
     protected Map<Integer, Map<String, String>> splitMapBySize(Map<String, String> segmentMap, int sizeLimit) {
         Map<Integer, Map<String, String>> splitedMap = new HashMap<>();
-        int stringLength = 0;
+        int stringLength = 2; // 리스트 양쪽 대괄호
         int mapId = 0;
         for (Map.Entry<String, String> entry : segmentMap.entrySet()) {
-            stringLength += entry.getValue().length();
-            if (stringLength < sizeLimit) {
-                if (!(splitedMap.size() > mapId)) {
-                    splitedMap.put(mapId, new HashMap<>());
-                }
-                splitedMap.get(mapId).put(entry.getKey(), entry.getValue());
-            } else {
-                stringLength = 0;
+            stringLength += entry.getValue().length() + 2; // 컨텐츠 양쪽 따옴표
+            if (stringLength >= sizeLimit) {
+                // 리스트 양쪽 대괄호 + 컨텐츠 양쪽 따옴표
+                stringLength = entry.getValue().length() + 2 + 2;
                 mapId++;
             }
+            if (!(splitedMap.size() > mapId)) {
+                splitedMap.put(mapId, new HashMap<>());
+            }
+            splitedMap.get(mapId).put(entry.getKey(), entry.getValue());
         }
         return splitedMap;
     }

@@ -12,8 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public class GoogleV3 extends GoogleModule {
@@ -114,16 +113,35 @@ public class GoogleV3 extends GoogleModule {
                     .build();
         }
 
-        Map<Integer, Map<String, String>> splitMapBySize = splitMapBySize(segmentMap, 30000);
-        List<String> translatedTexts = new ArrayList<>();
-        for (int i = 0; i < splitMapBySize.size(); i++) {
-            request = request.toBuilder()
-                    .addAllContents(splitMapBySize.get(i).values())
-                    .build();
-            translatedTexts.addAll(extractTextList(client.translateText(request)));
+        Map<Integer, Map<String, String>> splitMapBySize = splitMapBySize(segmentMap, 1024);
+        List<CompletableFuture<List<String>>> futures = new ArrayList<>();
+        for (Map<String, String> innerMap : splitMapBySize.values()) {
+            CompletableFuture<List<String>> future = getExtractTextListFuture(innerMap, request);
+            futures.add(future);
         }
 
+        List<String> translatedTexts = new ArrayList<>();
+        for (CompletableFuture<List<String>> future : futures) {
+            List<String> result = null;
+            try {
+                result = future.get();
+            } catch (Exception e) {
+                if (!e.getCause().getMessage().contains("RESOURCE_EXHAUSTED")) {
+                    throw new RuntimeException(e);
+                }
+            }
+            translatedTexts.addAll(result);
+        }
         return generateTargetMap(segmentMap, translatedTexts);
+    }
+
+    private CompletableFuture<List<String>> getExtractTextListFuture(Map<String, String> innerMap, TranslateTextRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            TranslateTextRequest req = request.toBuilder()
+                    .addAllContents(innerMap.values())
+                    .build();
+            return extractTextList(client.translateText(req));
+        });
     }
 
 

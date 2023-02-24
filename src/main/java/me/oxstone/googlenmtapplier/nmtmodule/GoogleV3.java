@@ -97,11 +97,13 @@ public class GoogleV3 extends GoogleModule {
         TranslateTextRequest request = getDefaultRequest();
         String strParent = request.getParent();
 
+        // 모델 설정
         if (nmtSettings.isApplyModel()) {
             request = request.toBuilder()
                     .setModel(strParent + "/models/" + nmtSettings.getModel()).build();
         }
 
+        // 글로서리 설정
         if (nmtSettings.isApplyGlossary()) {
             request = request.toBuilder()
                     .setGlossaryConfig(
@@ -113,36 +115,14 @@ public class GoogleV3 extends GoogleModule {
                     .build();
         }
 
-        Map<Integer, Map<String, String>> splitMapBySize = splitMapBySize(segmentMap, 1024);
-        List<CompletableFuture<List<String>>> futures = new ArrayList<>();
-        for (Map<String, String> innerMap : splitMapBySize.values()) {
-            CompletableFuture<List<String>> future = getExtractTextListFuture(innerMap, request);
-            futures.add(future);
-        }
-
-        List<String> translatedTexts = new ArrayList<>();
-        for (CompletableFuture<List<String>> future : futures) {
-            List<String> result = null;
-            try {
-                result = future.get();
-            } catch (Exception e) {
-                if (!e.getCause().getMessage().contains("RESOURCE_EXHAUSTED")) {
-                    throw new RuntimeException(e);
-                }
-            }
-            translatedTexts.addAll(result);
-        }
-        return generateTargetMap(segmentMap, translatedTexts);
-    }
-
-    private CompletableFuture<List<String>> getExtractTextListFuture(Map<String, String> innerMap, TranslateTextRequest request) {
-        return CompletableFuture.supplyAsync(() -> {
-            TranslateTextRequest req = request.toBuilder()
+        // 번역 API 요청
+        TranslateTextRequest finalRequest = request;
+        return asyncTranslateRequest(segmentMap, innerMap -> {
+            TranslateTextRequest req = finalRequest.toBuilder()
                     .addAllContents(innerMap.values())
                     .build();
-            return extractTextList(client.translateText(req));
+            List<String> translatedTexts = extractTextList(client.translateText(req));
+            return generateTargetMap(innerMap, translatedTexts);
         });
     }
-
-
 }

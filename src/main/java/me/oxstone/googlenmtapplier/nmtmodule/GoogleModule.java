@@ -3,14 +3,19 @@ package me.oxstone.googlenmtapplier.nmtmodule;
 import lombok.RequiredArgsConstructor;
 import me.oxstone.googlenmtapplier.nmtsettings.NmtSettings;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @RequiredArgsConstructor
 public abstract class GoogleModule implements NmtModule {
 
     protected final NmtSettings nmtSettings;
+    protected interface AsyncTranslateRequester<T> {
+        Map<String, String> request(Map<String, String> innerMap);
+    }
 
     /*
      * Segment Id + Target Text 조합의 Map 형성
@@ -42,5 +47,36 @@ public abstract class GoogleModule implements NmtModule {
             splitedMap.get(mapId).put(entry.getKey(), entry.getValue());
         }
         return splitedMap;
+    }
+
+    protected <T> CompletableFuture<Map<String, String>> getRequestFuture(
+            Map<String, String> map, AsyncTranslateRequester requester) {
+        return CompletableFuture.supplyAsync(() -> {
+            return requester.request(map);
+        });
+    }
+
+    public Map<String, String> asyncTranslateRequest(Map<String, String> segmentMap, AsyncTranslateRequester requester) {
+        Map<Integer, Map<String, String>> splitMapBySize = splitMapBySize(segmentMap, 1024);
+        List<CompletableFuture<Map<String, String>>> futures = new ArrayList<>();
+        for (Map<String, String> innerMap : splitMapBySize.values()) {
+            CompletableFuture<Map<String, String>> future = getRequestFuture(innerMap, requester);
+            futures.add(future);
+        }
+
+        Map<String, String> targetMap = new HashMap<>();
+        for (CompletableFuture<Map<String, String>> future : futures) {
+            Map<String, String> result = null;
+            try {
+                result = future.get();
+            } catch (Exception e) {
+                if (!e.getCause().getMessage().contains("RESOURCE_EXHAUSTED")) {
+                    throw new RuntimeException(e);
+                }
+            }
+            targetMap.putAll(result);
+        }
+//        return generateTargetMap(segmentMap, translatedTexts);
+        return targetMap;
     }
 }

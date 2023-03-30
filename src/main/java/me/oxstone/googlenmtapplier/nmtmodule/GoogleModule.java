@@ -1,5 +1,6 @@
 package me.oxstone.googlenmtapplier.nmtmodule;
 
+import com.google.protobuf.InvalidProtocolBufferException;
 import lombok.RequiredArgsConstructor;
 import me.oxstone.googlenmtapplier.nmtsettings.NmtSettings;
 
@@ -14,7 +15,7 @@ public abstract class GoogleModule implements NmtModule {
 
     protected final NmtSettings nmtSettings;
     protected interface AsyncTranslateRequester<T> {
-        Map<String, String> request(Map<String, String> innerMap);
+        Map<String, String> request(Map<String, String> innerMap) throws InvalidProtocolBufferException;
     }
 
     /*
@@ -52,7 +53,11 @@ public abstract class GoogleModule implements NmtModule {
     protected <T> CompletableFuture<Map<String, String>> getRequestFuture(
             Map<String, String> map, AsyncTranslateRequester requester) {
         return CompletableFuture.supplyAsync(() -> {
-            return requester.request(map);
+            try {
+                return requester.request(map);
+            } catch (InvalidProtocolBufferException e) {
+                throw new RuntimeException(e);
+            }
         });
     }
 

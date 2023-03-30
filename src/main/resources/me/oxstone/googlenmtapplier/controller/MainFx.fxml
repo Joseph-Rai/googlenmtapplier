@@ -163,41 +163,41 @@
                         </HBox>
                      </bottom>
                      <top>
-                        <AnchorPane prefHeight="188.0" prefWidth="600.0" BorderPane.alignment="CENTER">
+                        <AnchorPane prefHeight="308.0" prefWidth="600.0" BorderPane.alignment="CENTER">
                            <children>
-                              <Label fx:id="lblJsonPath" layoutX="24.0" layoutY="150.0" styleClass="lbl" text="Json Path">
+                              <Label fx:id="lblJsonPath" layoutX="24.0" layoutY="159.0" styleClass="lbl" text="Json Path">
                                  <font>
                                     <Font size="18.0" />
                                  </font>
                               </Label>
-                              <TextField fx:id="txtJsonPath" layoutX="100.0" layoutY="148.0" prefHeight="23.0" prefWidth="430.0" />
-                              <Button fx:id="btnSearchJson" layoutX="539.0" layoutY="148.0" mnemonicParsing="false" onAction="#clickBtnSearchJson" text="..." />
-                              <Label fx:id="lblProject" layoutX="24.0" layoutY="181.0" styleClass="lbl" text="Project">
+                              <TextField fx:id="txtJsonPath" layoutX="100.0" layoutY="157.0" prefHeight="23.0" prefWidth="430.0" />
+                              <Button fx:id="btnSearchJson" layoutX="539.0" layoutY="157.0" mnemonicParsing="false" onAction="#clickBtnSearchJson" text="..." />
+                              <Label fx:id="lblProject" layoutX="24.0" layoutY="190.0" styleClass="lbl" text="Project">
                                  <font>
                                     <Font size="18.0" />
                                  </font>
                               </Label>
-                              <TextField fx:id="txtProject" layoutX="100.0" layoutY="178.0" prefHeight="23.0" prefWidth="430.0" />
-                              <Label fx:id="lblModel" layoutX="24.0" layoutY="210.0" styleClass="lbl" text="Model">
+                              <TextField fx:id="txtProject" layoutX="100.0" layoutY="187.0" prefHeight="23.0" prefWidth="430.0" />
+                              <Label fx:id="lblModel" layoutX="24.0" layoutY="219.0" styleClass="lbl" text="Model">
                                  <font>
                                     <Font size="18.0" />
                                  </font>
                               </Label>
-                              <TextField fx:id="txtModel" layoutX="100.0" layoutY="207.0" prefHeight="23.0" prefWidth="430.0" />
-                              <Label fx:id="lblLocation" layoutX="24.0" layoutY="239.0" styleClass="lbl" text="Location">
+                              <TextField fx:id="txtModel" layoutX="100.0" layoutY="216.0" prefHeight="23.0" prefWidth="430.0" />
+                              <Label fx:id="lblLocation" layoutX="24.0" layoutY="248.0" styleClass="lbl" text="Location">
                                  <font>
                                     <Font size="18.0" />
                                  </font>
                               </Label>
-                              <TextField fx:id="txtLocation" layoutX="100.0" layoutY="236.0" prefHeight="23.0" prefWidth="430.0" />
-                              <Label fx:id="lblGlossary" layoutX="24.0" layoutY="268.0" styleClass="lbl" text="Glossary">
+                              <TextField fx:id="txtLocation" layoutX="100.0" layoutY="245.0" prefHeight="23.0" prefWidth="430.0" />
+                              <Label fx:id="lblGlossary" layoutX="24.0" layoutY="277.0" styleClass="lbl" text="Glossary">
                                  <font>
                                     <Font size="18.0" />
                                  </font>
                               </Label>
-                              <TextField fx:id="txtGlossary" layoutX="100.0" layoutY="265.0" prefHeight="23.0" prefWidth="430.0" />
-                              <TextField fx:id="txtApiKey" layoutX="100.0" layoutY="59.0" prefHeight="23.0" prefWidth="430.0" />
-                              <Label fx:id="lblApiKey" layoutX="24.0" layoutY="59.0" styleClass="lbl" text="Api Key">
+                              <TextField fx:id="txtGlossary" layoutX="100.0" layoutY="274.0" prefHeight="23.0" prefWidth="430.0" />
+                              <TextField fx:id="txtApiKey" layoutX="100.0" layoutY="58.0" prefHeight="23.0" prefWidth="430.0" />
+                              <Label fx:id="lblApiKey" layoutX="24.0" layoutY="58.0" styleClass="lbl" text="Api Key">
                                  <font>
                                     <Font size="18.0" />
                                  </font>
@@ -207,13 +207,13 @@
                                     <Font name="System Bold" size="18.0" />
                                  </font>
                               </Label>
-                              <Label fx:id="lblApiKey11" layoutX="20.0" layoutY="109.0" styleClass="title" text="▣▣ V3 Settings">
+                              <Label fx:id="lblApiKey11" layoutX="20.0" layoutY="113.0" styleClass="title" text="▣▣ V3 Settings">
                                  <font>
                                     <Font name="System Bold" size="18.0" />
                                  </font>
                               </Label>
-                              <CheckBox fx:id="chkModel" layoutX="545.0" layoutY="210.0" mnemonicParsing="false" />
-                              <CheckBox fx:id="chkGlossary" layoutX="545.0" layoutY="268.0" mnemonicParsing="false" />
+                              <CheckBox fx:id="chkModel" layoutX="545.0" layoutY="219.0" mnemonicParsing="false" />
+                              <CheckBox fx:id="chkGlossary" layoutX="545.0" layoutY="277.0" mnemonicParsing="false" />
                            </children>
                         </AnchorPane>
                      </top>

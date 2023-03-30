@@ -27,6 +27,7 @@ import me.oxstone.googlenmtapplier.JavaFxApplication;
 import me.oxstone.googlenmtapplier.data.Language;
 import me.oxstone.googlenmtapplier.nmtmodule.GoogleV2;
 import me.oxstone.googlenmtapplier.nmtmodule.GoogleV3;
+import me.oxstone.googlenmtapplier.nmtmodule.GoogleV3_WMC;
 import me.oxstone.googlenmtapplier.nmtmodule.NmtModule;
 import me.oxstone.googlenmtapplier.nmtsettings.GoogleV2Settings;
 import me.oxstone.googlenmtapplier.nmtsettings.GoogleV3Settings;
@@ -146,7 +147,6 @@ public class MainFxController implements Initializable {
 
     @FXML
     private ListView<String> lstFiles = new ListView<>();
-
     private NmtSettings nmtSettings;
     private NmtModule nmtModule;
     private String typedText;
@@ -176,7 +176,8 @@ public class MainFxController implements Initializable {
         // 번역모듈 목록 초기화
         cboNmtModule.getItems().addAll(
                 "Google Translation V2",
-                "Google Translation V3");
+                "Google Translation V3",
+                "WMC Translation");
         cboNmtModule.getSelectionModel().select("Google Translation V3");
 
         cboFileFilter.getItems().addAll(
@@ -295,6 +296,10 @@ public class MainFxController implements Initializable {
                 nmtModule = new GoogleV3(nmtSettings);
                 // 세팅창 조정로직 추가
                 break;
+            case "WMC Translation":
+                nmtSettings = new GoogleV3Settings();
+                prepareSettings();
+                nmtModule = new GoogleV3_WMC(nmtSettings);
         }
 
         String msg;

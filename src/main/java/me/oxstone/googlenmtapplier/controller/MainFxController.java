@@ -991,6 +991,7 @@ public class MainFxController implements Initializable {
                 comboBox.setItems(getAllObservableLanguages());
                 break;
             case "Google Translation V3":
+            case "WMC Translation":
                 comboBox.setItems(getGlossaryFilteredObservableLanguages());
                 break;
         }

@@ -20,7 +20,7 @@ import java.util.Map;
 @Setter
 public class GoogleV3_WMC extends GoogleV3 {
 
-    private static final String DEFAULT_URL = "https://translate.oxstone.co.kr/api/v1";
+    private static final String DEFAULT_URL = "https://translationapis.oxstone.co.kr/api/v1";
 
     RestTemplate restTemplate;
 

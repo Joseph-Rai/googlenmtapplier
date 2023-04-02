@@ -5,22 +5,23 @@ import com.google.cloud.translate.v3.TranslateTextResponse;
 import com.google.protobuf.InvalidProtocolBufferException;
 import lombok.Setter;
 import me.oxstone.googlenmtapplier.nmtsettings.NmtSettings;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @Setter
 public class GoogleV3_WMC extends GoogleV3 {
 
     private static final String DEFAULT_URL = "https://translationapis.oxstone.co.kr/api/v1";
+//    private static final String DEFAULT_URL = "http://localhost:8081/api/v1";
 
     RestTemplate restTemplate;
 
@@ -45,13 +46,41 @@ public class GoogleV3_WMC extends GoogleV3 {
                     .build();
             TranslateTextResponse responseEntity = getTranslateTextResponse(req);
             List<String> translatedTexts = extractTextList(responseEntity);
-            return generateTargetMap(innerMap, translatedTexts);
+
+            //chatGPT를 이용한 보정
+            List<String> corrected = correctByChatGPT(translatedTexts);
+
+            return generateTargetMap(innerMap, corrected);
         });
+    }
+
+    private List<String> correctByChatGPT(List<String> translatedTexts) {
+        List<CompletableFuture<String>> futureList = new ArrayList<>();
+
+        // translatedTexts를 순회하며 비동기 API 요청을 보냅니다.
+        for (String text : translatedTexts) {
+            CompletableFuture<String> future =
+                    CompletableFuture.supplyAsync(() -> {
+                        HttpHeaders headers = new HttpHeaders();
+                        headers.setContentType(MediaType.TEXT_PLAIN);
+                        HttpEntity<String> entity = new HttpEntity<>(text, headers);
+                        ResponseEntity<String> response = restTemplate.exchange(DEFAULT_URL + "/chatGPT", HttpMethod.POST, entity, String.class);
+                        return response.getBody();
+                    });
+            futureList.add(future);
+        }
+
+        // CompletableFuture 리스트에서 모든 결과를 기다리고 수집합니다.
+        List<String> result = futureList.stream()
+                .map(CompletableFuture::join)
+                .collect(Collectors.toList());
+
+        return result;
     }
 
     private boolean validateJsonKey() throws IOException {
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Type", "application/json");
+        headers.setContentType(MediaType.APPLICATION_JSON);
         StringBuilder sb = new StringBuilder();
         BufferedReader br = new BufferedReader(new FileReader(nmtSettings.getJson()));
         String line = null;

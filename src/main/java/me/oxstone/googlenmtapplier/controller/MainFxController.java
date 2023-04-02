@@ -177,7 +177,7 @@ public class MainFxController implements Initializable {
         cboNmtModule.getItems().addAll(
                 "Google Translation V2",
                 "Google Translation V3",
-                "WMC Translation");
+                "WMC Translation(with ChatGPT)");
         cboNmtModule.getSelectionModel().select("Google Translation V3");
 
         cboFileFilter.getItems().addAll(
@@ -296,7 +296,7 @@ public class MainFxController implements Initializable {
                 nmtModule = new GoogleV3(nmtSettings);
                 // 세팅창 조정로직 추가
                 break;
-            case "WMC Translation":
+            case "WMC Translation(with ChatGPT)":
                 nmtSettings = new GoogleV3Settings();
                 prepareSettings();
                 nmtModule = new GoogleV3_WMC(nmtSettings);
@@ -991,7 +991,7 @@ public class MainFxController implements Initializable {
                 comboBox.setItems(getAllObservableLanguages());
                 break;
             case "Google Translation V3":
-            case "WMC Translation":
+            case "WMC Translation(with ChatGPT)":
                 comboBox.setItems(getGlossaryFilteredObservableLanguages());
                 break;
         }

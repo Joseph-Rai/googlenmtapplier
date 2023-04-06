@@ -21,4 +21,6 @@ public interface NmtSettings {
     void setApplyModel(boolean applyModel);
     boolean isApplyGlossary();
     void setApplyGlossary(boolean applyGlossary);
+    boolean isApplyChatGPT();
+    void setApplyChatGPT(boolean applyChatGPT);
 }

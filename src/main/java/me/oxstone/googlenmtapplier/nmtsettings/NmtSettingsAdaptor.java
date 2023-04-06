@@ -104,4 +104,14 @@ public class NmtSettingsAdaptor implements NmtSettings {
     public void setApplyGlossary(boolean applyGlossary) {
 
     }
+
+    @Override
+    public boolean isApplyChatGPT() {
+        return false;
+    }
+
+    @Override
+    public void setApplyChatGPT(boolean applyChatGPT) {
+
+    }
 }

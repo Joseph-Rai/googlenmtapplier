@@ -14,5 +14,6 @@ public class GoogleV3Settings extends NmtSettingsAdaptor {
     private String targetLangCode;
     private boolean applyModel;
     private boolean applyGlossary;
+    private boolean applyChatGPT;
 
 }

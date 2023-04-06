@@ -47,10 +47,12 @@ public class GoogleV3_WMC extends GoogleV3 {
             TranslateTextResponse responseEntity = getTranslateTextResponse(req);
             List<String> translatedTexts = extractTextList(responseEntity);
 
-            //chatGPT를 이용한 보정
-            List<String> corrected = correctByChatGPT(translatedTexts);
+            if (nmtSettings.isApplyChatGPT()) {
+                return generateTargetMap(innerMap, correctByChatGPT(translatedTexts));
+            } else {
+                return generateTargetMap(innerMap, translatedTexts);
+            }
 
-            return generateTargetMap(innerMap, corrected);
         });
     }
 

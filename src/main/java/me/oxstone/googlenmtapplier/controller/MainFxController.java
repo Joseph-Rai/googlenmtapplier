@@ -85,6 +85,7 @@ public class MainFxController implements Initializable {
     private static final String FILE_FILTER = "file_filter";
     private static final String SAVED_SOURCE_LANGUAGE = "saved_source_language";
     private static final String SAVED_TARGET_LANGUAGE = "saved_target_language";
+    private static final String APPLY_CHATGPT = "apply_chatGPT";
 
     private static final Preferences preference = Preferences.userNodeForPackage(MainFxController.class);
 
@@ -146,6 +147,9 @@ public class MainFxController implements Initializable {
     private Button btnOpenFile;
 
     @FXML
+    private CheckBox chkChatGPT;
+
+    @FXML
     private ListView<String> lstFiles = new ListView<>();
     private NmtSettings nmtSettings;
     private NmtModule nmtModule;
@@ -177,7 +181,7 @@ public class MainFxController implements Initializable {
         cboNmtModule.getItems().addAll(
                 "Google Translation V2",
                 "Google Translation V3",
-                "WMC Translation(with ChatGPT)");
+                "WMC Translation");
         cboNmtModule.getSelectionModel().select("Google Translation V3");
 
         cboFileFilter.getItems().addAll(
@@ -195,6 +199,8 @@ public class MainFxController implements Initializable {
                 .set(Boolean.parseBoolean(preference.get(TARGET_FORMAT_TRANSLATION_TEXT_ONLY, "true")));
         optTargetAndTranslatedText.selectedProperty()
                 .set(Boolean.parseBoolean(preference.get(TARGET_FORMAT_TARGET_AND_TRANSLATION_TEXT, "false")));
+        chkChatGPT.selectedProperty()
+                .set(Boolean.parseBoolean(preference.get(APPLY_CHATGPT, "true")));
 
         // 소스언어, 타겟언어 목록 초기화
         initComboBoxItems(cboSourceLang);
@@ -281,6 +287,7 @@ public class MainFxController implements Initializable {
                 String.valueOf(optTranslatedTextOnly.selectedProperty().getValue()));
         preference.put(TARGET_FORMAT_TARGET_AND_TRANSLATION_TEXT,
                 String.valueOf(optTargetAndTranslatedText.selectedProperty().getValue()));
+        preference.put(APPLY_CHATGPT, String.valueOf(chkChatGPT.selectedProperty().getValue()));
 
         // cboMntModule 값에 따라 Settings, MntModule 설정
         switch (cboNmtModule.getValue()) {
@@ -296,7 +303,7 @@ public class MainFxController implements Initializable {
                 nmtModule = new GoogleV3(nmtSettings);
                 // 세팅창 조정로직 추가
                 break;
-            case "WMC Translation(with ChatGPT)":
+            case "WMC Translation":
                 nmtSettings = new GoogleV3Settings();
                 prepareSettings();
                 nmtModule = new GoogleV3_WMC(nmtSettings);
@@ -369,6 +376,7 @@ public class MainFxController implements Initializable {
                 .ifPresent(code -> nmtSettings.setTargetLangCode(code));
         nmtSettings.setApplyModel(chkModel.selectedProperty().getValue());
         nmtSettings.setApplyGlossary(chkGlossary.selectedProperty().getValue());
+        nmtSettings.setApplyChatGPT(chkChatGPT.selectedProperty().getValue());
     }
 
     /**
@@ -991,7 +999,7 @@ public class MainFxController implements Initializable {
                 comboBox.setItems(getAllObservableLanguages());
                 break;
             case "Google Translation V3":
-            case "WMC Translation(with ChatGPT)":
+            case "WMC Translation":
                 comboBox.setItems(getGlossaryFilteredObservableLanguages());
                 break;
         }

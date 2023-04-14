@@ -180,16 +180,16 @@ public class MainFxController implements Initializable {
         // 번역모듈 목록 초기화
         cboNmtModule.getItems().addAll(
                 "Google Translation V2",
-                "Google Translation V3",
+//                "Google Translation V3",
                 "WMC Translation");
-        cboNmtModule.getSelectionModel().select("Google Translation V3");
+        cboNmtModule.getSelectionModel().select("WMC Translation");
 
         cboFileFilter.getItems().addAll(
                 "SDL Xliff");
         cboFileFilter.getSelectionModel().select("SDL Xliff");
 
         // Home 세팅값 불러오기
-        cboNmtModule.getSelectionModel().select(preference.get(NMT_MODULE, "Google Translation V3"));
+        cboNmtModule.getSelectionModel().select(preference.get(NMT_MODULE, "WMC Translation"));
         cboFileFilter.getSelectionModel().select(preference.get(FILE_FILTER, "SDL Xliff"));
         cboSourceLang.getSelectionModel().select(preference.get(SAVED_SOURCE_LANGUAGE, "Korean"));
         cboTargetLang.getSelectionModel().select(preference.get(SAVED_TARGET_LANGUAGE, "English"));

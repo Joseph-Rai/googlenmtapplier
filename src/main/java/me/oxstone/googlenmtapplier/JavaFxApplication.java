@@ -13,7 +13,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 public class JavaFxApplication extends Application {
 
     private ConfigurableApplicationContext applicationContext;
-    public static final String PROGRAM_VER = "Google NMT Applier Ver 2.5.1";
+    public static final String PROGRAM_VER = "Google NMT Applier Ver 2.5.2";
     public static final String PROGRAM_AUTHOR = "oxstone7@gmail.com";
     public static final String PROGRAM_COPYRIGHT = "World Mission Society Church of God";
     public static final String PROGRAM_LAST_MODIFIED = "06 Apr 2023";

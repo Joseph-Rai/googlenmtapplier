@@ -6,11 +6,13 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import lombok.Setter;
 import me.oxstone.googlenmtapplier.nmtsettings.NmtSettings;
 import org.springframework.http.*;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +30,8 @@ public class GoogleV3_WMC extends GoogleV3 {
     public GoogleV3_WMC(NmtSettings nmtSettings) throws IOException {
         super(nmtSettings);
         restTemplate = new RestTemplate();
+        restTemplate.getMessageConverters()
+                .add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
     }
 
     @Override

@@ -16,8 +16,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 @Setter
 public class GoogleV3_WMC extends GoogleV3 {
@@ -52,7 +50,7 @@ public class GoogleV3_WMC extends GoogleV3 {
             List<String> translatedTexts = extractTextList(responseEntity);
 
             if (nmtSettings.isApplyChatGPT()) {
-                return generateTargetMap(innerMap, correctByChatGPT(translatedTexts));
+                return generateTargetMap(innerMap, cleanUpByChatGPT(translatedTexts));
             } else {
                 return generateTargetMap(innerMap, translatedTexts);
             }
@@ -60,26 +58,31 @@ public class GoogleV3_WMC extends GoogleV3 {
         });
     }
 
-    private List<String> correctByChatGPT(List<String> translatedTexts) {
-        List<CompletableFuture<String>> futureList = new ArrayList<>();
-
+    private List<String> cleanUpByChatGPT(List<String> translatedTexts) {
+//        List<CompletableFuture<String>> futureList = new ArrayList<>();
+        List<String> result = new ArrayList<>();
         // translatedTexts를 순회하며 비동기 API 요청을 보냅니다.
         for (String text : translatedTexts) {
-            CompletableFuture<String> future =
-                    CompletableFuture.supplyAsync(() -> {
-                        HttpHeaders headers = new HttpHeaders();
-                        headers.setContentType(MediaType.TEXT_PLAIN);
-                        HttpEntity<String> entity = new HttpEntity<>(text, headers);
-                        ResponseEntity<String> response = restTemplate.exchange(DEFAULT_URL + "/chatGPT", HttpMethod.POST, entity, String.class);
-                        return response.getBody();
-                    });
-            futureList.add(future);
+//            CompletableFuture<String> future =
+//                    CompletableFuture.supplyAsync(() -> {
+//                        HttpHeaders headers = new HttpHeaders();
+//                        headers.setContentType(MediaType.TEXT_PLAIN);
+//                        HttpEntity<String> entity = new HttpEntity<>(text, headers);
+//                        ResponseEntity<String> response = restTemplate.exchange(DEFAULT_URL + "/chatGPT", HttpMethod.POST, entity, String.class);
+//                        return response.getBody();
+//                    });
+//            futureList.add(future);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.TEXT_PLAIN);
+            HttpEntity<String> entity = new HttpEntity<>(text, headers);
+            ResponseEntity<String> response = restTemplate.exchange(DEFAULT_URL + "/chatGPT", HttpMethod.POST, entity, String.class);
+            result.add(response.getBody());
         }
 
         // CompletableFuture 리스트에서 모든 결과를 기다리고 수집합니다.
-        List<String> result = futureList.stream()
-                .map(CompletableFuture::join)
-                .collect(Collectors.toList());
+//        List<String> result = futureList.stream()
+//                .map(CompletableFuture::join)
+//                .collect(Collectors.toList());
 
         return result;
     }

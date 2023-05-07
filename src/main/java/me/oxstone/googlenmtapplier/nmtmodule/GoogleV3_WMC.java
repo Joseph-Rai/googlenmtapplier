@@ -76,7 +76,11 @@ public class GoogleV3_WMC extends GoogleV3 {
             headers.setContentType(MediaType.TEXT_PLAIN);
             HttpEntity<String> entity = new HttpEntity<>(text, headers);
             ResponseEntity<String> response = restTemplate.exchange(DEFAULT_URL + "/chatGPT", HttpMethod.POST, entity, String.class);
-            result.add(response.getBody());
+            if (response.getBody().length() > text.length()) {
+                result.add(text);
+            } else {
+                result.add(response.getBody());
+            }
         }
 
         // CompletableFuture 리스트에서 모든 결과를 기다리고 수집합니다.

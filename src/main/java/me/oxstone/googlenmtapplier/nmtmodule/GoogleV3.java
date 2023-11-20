@@ -38,7 +38,7 @@ public class GoogleV3 extends GoogleModule {
      */
     private TranslationServiceClient getDefaultClient() throws IOException {
         GoogleCredentials myCredentials = GoogleCredentials.fromStream(new FileInputStream(nmtSettings.getJson()))
-                .createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-translation"));
+                .createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
         TranslationServiceSettings defaultSettings =
                 TranslationServiceSettings.newBuilder()
                         .setCredentialsProvider(FixedCredentialsProvider.create(myCredentials))

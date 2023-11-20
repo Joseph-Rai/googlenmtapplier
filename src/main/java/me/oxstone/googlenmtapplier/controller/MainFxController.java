@@ -25,10 +25,7 @@ import javafx.stage.Window;
 import lombok.RequiredArgsConstructor;
 import me.oxstone.googlenmtapplier.JavaFxApplication;
 import me.oxstone.googlenmtapplier.data.Language;
-import me.oxstone.googlenmtapplier.nmtmodule.GoogleV2;
-import me.oxstone.googlenmtapplier.nmtmodule.GoogleV3;
-import me.oxstone.googlenmtapplier.nmtmodule.GoogleV3_WMC;
-import me.oxstone.googlenmtapplier.nmtmodule.NmtModule;
+import me.oxstone.googlenmtapplier.nmtmodule.*;
 import me.oxstone.googlenmtapplier.nmtsettings.GoogleV2Settings;
 import me.oxstone.googlenmtapplier.nmtsettings.GoogleV3Settings;
 import me.oxstone.googlenmtapplier.nmtsettings.NmtSettings;
@@ -181,7 +178,8 @@ public class MainFxController implements Initializable {
         cboNmtModule.getItems().addAll(
                 "Google Translation V2",
 //                "Google Translation V3",
-                "WMC Translation");
+                "WMC Translation",
+                "ChatGPT 4.0");
         cboNmtModule.getSelectionModel().select("WMC Translation");
 
         cboFileFilter.getItems().addAll(
@@ -201,6 +199,7 @@ public class MainFxController implements Initializable {
                 .set(Boolean.parseBoolean(preference.get(TARGET_FORMAT_TARGET_AND_TRANSLATION_TEXT, "false")));
         chkChatGPT.selectedProperty()
                 .set(Boolean.parseBoolean(preference.get(APPLY_CHATGPT, "true")));
+        chkChatGPT.setVisible(false);
 
         // 소스언어, 타겟언어 목록 초기화
         initComboBoxItems(cboSourceLang);
@@ -307,6 +306,10 @@ public class MainFxController implements Initializable {
                 nmtSettings = new GoogleV3Settings();
                 prepareSettings();
                 nmtModule = new GoogleV3_WMC(nmtSettings);
+            case "ChatGPT 4.0":
+                nmtSettings = new GoogleV3Settings();
+                prepareSettings();
+                nmtModule = new GPT(nmtSettings, languageRepository);
         }
 
         String msg;
@@ -996,6 +999,7 @@ public class MainFxController implements Initializable {
 
         switch (cboNmtModule.getValue()) {
             case "Google Translation V2":
+            case "ChatGPT 4.0":
                 comboBox.setItems(getAllObservableLanguages());
                 break;
             case "Google Translation V3":

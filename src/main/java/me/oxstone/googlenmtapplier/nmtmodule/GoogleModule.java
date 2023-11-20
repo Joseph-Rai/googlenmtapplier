@@ -1,6 +1,7 @@
 package me.oxstone.googlenmtapplier.nmtmodule;
 
 import com.google.protobuf.InvalidProtocolBufferException;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import me.oxstone.googlenmtapplier.nmtsettings.NmtSettings;
 

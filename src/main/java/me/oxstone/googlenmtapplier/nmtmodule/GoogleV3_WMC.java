@@ -5,8 +5,10 @@ import com.google.cloud.translate.v3.TranslateTextResponse;
 import com.google.protobuf.InvalidProtocolBufferException;
 import lombok.Setter;
 import me.oxstone.googlenmtapplier.nmtsettings.NmtSettings;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.BufferedReader;
@@ -20,10 +22,10 @@ import java.util.Map;
 @Setter
 public class GoogleV3_WMC extends GoogleV3 {
 
-    private static final String DEFAULT_URL = "https://translationapis.oxstone.co.kr/api/v1";
-//    private static final String DEFAULT_URL = "http://localhost:8081/api/v1";
+    protected static final String DEFAULT_URL = "https://translationapis.oxstone.co.kr/api/v1";
+//    protected static final String DEFAULT_URL = "http://localhost:8081/api/v1";
 
-    RestTemplate restTemplate;
+    protected RestTemplate restTemplate;
 
     public GoogleV3_WMC(NmtSettings nmtSettings) throws IOException {
         super(nmtSettings);
@@ -49,11 +51,13 @@ public class GoogleV3_WMC extends GoogleV3 {
             TranslateTextResponse responseEntity = getTranslateTextResponse(req);
             List<String> translatedTexts = extractTextList(responseEntity);
 
-            if (nmtSettings.isApplyChatGPT()) {
-                return generateTargetMap(innerMap, cleanUpByChatGPT(translatedTexts));
-            } else {
-                return generateTargetMap(innerMap, translatedTexts);
-            }
+//            if (nmtSettings.isApplyChatGPT()) {
+//                return generateTargetMap(innerMap, cleanUpByChatGPT(translatedTexts));
+//            } else {
+//                return generateTargetMap(innerMap, translatedTexts);
+//            }
+
+            return generateTargetMap(innerMap, translatedTexts);
 
         });
     }
@@ -91,7 +95,7 @@ public class GoogleV3_WMC extends GoogleV3 {
         return result;
     }
 
-    private boolean validateJsonKey() throws IOException {
+    protected boolean validateJsonKey() throws IOException {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         StringBuilder sb = new StringBuilder();

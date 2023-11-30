@@ -306,6 +306,7 @@ public class MainFxController implements Initializable {
                 nmtSettings = new GoogleV3Settings();
                 prepareSettings();
                 nmtModule = new GoogleV3_WMC(nmtSettings);
+                break;
             case "ChatGPT 4.0":
                 nmtSettings = new GoogleV3Settings();
                 prepareSettings();
